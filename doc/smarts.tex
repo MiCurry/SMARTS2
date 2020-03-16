@@ -3,6 +3,7 @@
 \usepackage[dvipsnames]{xcolor}
 \usepackage{listings}
 \usepackage{color}
+\usepackage{xspace}
 
 \setlength{\topmargin}{0in}
 \setlength{\headheight}{0in}
@@ -12,7 +13,37 @@
 \setlength{\evensidemargin}{0in}
 \setlength{\oddsidemargin}{0in}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SMARTS' Keywords
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Environment.yaml Keywords
+\newcommand{\compiler}{{\tt Compilers}\xspace}
+\newcommand{\modset}{{\tt Modsets}\xspace}
+\newcommand{\libs}{{\tt Libs}\xspace}
+\newcommand{\mpi}{{\tt MPI}\xspace}
+\newcommand{\module}{{\tt Module}\xspace}
+\newcommand{\version}{{\tt Version}\xspace}
+\newcommand{\path}{{\tt Path}\xspace}
+\newcommand{\executables}{{\tt Executables}\xspace}
+\newcommand{\name}{{\tt Name}\xspace}
+\newcommand{\valueenv}{{\tt Value}\xspace}
+\newcommand{\pathenv}{{\tt PATH}\xspace}
+
+% Environment.class Keywords
+\newcommand{\listModsets}{{\tt list\_modsets}\xspace}
+\newcommand{\loadModset}{{\tt load\_modset}\xspace}
+
+% Test Keywords
+\newcommand{\testRun}{{\tt run}\xspace}
+\newcommand{\testName}{{\tt test\_name}\xspace}
+\newcommand{\testDescription}{{\tt test\_description}\xspace}
+\newcommand{\npcus}{{\tt nCPUs}\xspace}
+\newcommand{\dependencies}{{\tt dependencies}\xspace}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Yaml Listing Definition
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand\YAMLcolonstyle{\color{red}\mdseries}
 \newcommand\YAMLkeystyle{\color{black}\bfseries}
 \newcommand\YAMLvaluestyle{\color{blue}\mdseries}
@@ -50,22 +81,32 @@ literate =    {---}{{\ProcessThreeDashes}}3
 \makeatother
 
 \newcommand\ProcessThreeDashes{\llap{\color{cyan}\mdseries-{-}-}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\lstset{basicstyle=\footnotesize\ttfamily,
+        breakatwhitespace=false,
+        breaklines=true,
+        numbers=left,
+        numberstyle=\tiny,
+        frame=single,
+        }
 
 \begin{document}
-\title{SMARTS - Simple MPAS Atmosphere Regression Testing System}
+\title{SMARTS - Simple MPAS Atmosphere Regression Testing System - User Guide}
 \date{v.000, 21 January 2020}
 
 \maketitle
+\tableofcontents
 
 \chapter{Introduction}
 \label{chap:intro}
 
 This document is a placeholder for a future user document for SMARTS.
 
-\begin{lstlisting}[language=yaml]
-// example.yaml
-Description:
+\begin{lstlisting}[language=yaml,
+                   caption={YAML Example Code Listing},
+                   label=yaml_exmaple]
+// example.yaml Description:
     Name: Cheyenne
     Max Cores: 4
     Modules: True
@@ -79,8 +120,10 @@ Modsets:
         - Three
 \end{lstlisting}
 
-\begin{lstlisting}[language=Python]
-\\ example_test.py
+\begin{lstlisting}[language=Python,
+                   caption={Example Python Listing},
+                   label=python_example]
+// example_test.py
 import time
 
 class example_test:
@@ -92,17 +135,20 @@ class example_test:
 
     def run(self, env, result, src_dir, test_dir, hpc):
         pass
-
 \end{lstlisting}
 
+\input{chap_smarts_cl.tex}
 
-\chapter{Envrionment.yaml Machine Specification}
+\input{chap_tests.tex}
 
-\chapter{The Environment Class}
+\input{chap_environment_file.tex}
 
-\chapter{Creating Tests}
+\input{chap_environment_class.tex}
 
-\chapter{Command Line Interface - smparts.py}
+\appendix
 
+\input{appendix_example_envs.tex}
+
+\input{appendix_example_tests.tex}
 
 \end{document}
