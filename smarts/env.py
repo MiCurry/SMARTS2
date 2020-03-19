@@ -65,7 +65,7 @@ class Environment:
             if 'Modules' in description:
                 if description['Modules'] == True and 'LMOD_CMD' not in description:
                     print("ERROR: In the 'Description' section of the env.yaml file, the 'Modules:' attribute")
-                    print("ERROR: was set to True, but a 'LMOD_CMD' attribute was not given. Please add")
+                    print("ERROR: was set to 'True', but 'LMOD_CMD' path was not given. Please add")
                     print("ERROR: a 'LMOD_CMD' attribute to the description section of: '", self.envFile, "'", sep="")
                     return -1
 
@@ -133,16 +133,16 @@ class Environment:
                 if 'MPI' in modset:
                     mpi = modset['MPI']
                     if 'Path' not in mpi and 'Module' not in mpi:
-                        print("ERROR: In the MPI specification, no 'path' or 'module' was given")
-                        print("ERROR: Please add either a 'path' or a 'module' attribute to specify")
+                        print("ERROR: In the MPI specification, no 'Path' or 'Module' was given")
+                        print("ERROR: Please add either a 'Path' or a 'Module' attribute to specify")
                         print("ERROR: an MPI installation in the modset:", modsets)
                         return -1
                     if 'Module' in mpi and self.lmod_supported == False:
                         print("ERROR: The mpi specification for the modset'", modsets, "' was specified with", sep="")
-                        print("ERROR: 'module', but 'Modules' in the 'Description' section of '", self.envFile, "'", sep="")
-                        print("ERROR: is set to False or LMOD support for this enviornment is not supported")
-                        print("ERROR: because of an error. Please speicfy the compiler location as a")
-                        print("ERROR: 'path' or fix the above warnings")
+                        print("ERROR: 'Module', but 'Modules' in the 'Description' section of '", self.envFile, "'", sep="")
+                        print("ERROR: is set to False or LMOD support for this env.yaml is not supported")
+                        print("ERROR: because of an error. Please specify the compiler location with")
+                        print("ERROR: 'Path' or fix the above warnings")
                         return -1
                     if 'Executables' not in mpi:
                         print("ERROR: 'Executables' was not found in the MPI section for the modset:")
@@ -159,8 +159,8 @@ class Environment:
                             print("ERROR: given to assign it a value for the library: '", libName, "'.", sep="")
                             print("ERROR: Please specify a Value to associate with Name:")
                             print("ERROR: ```")
-                            print("ERROR: Name:")
-                            print("ERROR: Value:")
+                            print("ERROR: Name: ENV_NAME")
+                            print("ERROR: Value: value")
                             print("ERROR: ```")
                             return -1
                         if ('Name' not in lib and 'Value' in lib):
@@ -178,9 +178,9 @@ class Environment:
                             print("ERROR: 'Name', 'Value' pair or with 'Module' and 'Version'")
                             return -1
                         if 'Module' in lib and self.lmod_supported == False:
-                            print("ERROR: The library specification for the modset'", modsets, "' was specified with", sep="")
+                            print("ERROR: The library specification for the modset: '", modsets, "' was specified with", sep="")
                             print("ERROR: 'Module', but 'Modules' in the 'Description' section of '", self.envFile, "'", sep="")
-                            print("ERROR: is set to False or LMOD support for this enviornment is not supported.")
+                            print("ERROR: is set to False or LMOD support")
                             return -1
                 else:
                     print("ERROR: 'Libs' section was not found in the modset: '", modsets,"'", sep='')
