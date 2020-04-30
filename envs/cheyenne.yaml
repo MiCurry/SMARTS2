@@ -11,9 +11,9 @@ Description:
   HPC: PBS
 
 PBS_OPTIONS:
-  - A: NM00013
-  - q: regular
-  - j: oe
+  A: NMMM0013
+  q: share
+  j: oe
 
 Modsets:
   ###############
