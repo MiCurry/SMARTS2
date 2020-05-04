@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+#PBS -N smarts_pbs_test_2
+#PBS -A NMMM0013
+#PBS -l walltime=00:00:40
+#PBS -q economy
+#PBS -l select=1:ncpus=1:mpiprocs=1
+
+./sleep30.sh
+exit 0
