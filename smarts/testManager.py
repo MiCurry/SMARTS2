@@ -6,6 +6,7 @@ from importlib import import_module
 from multiprocessing import Process
 
 from smarts.reporters.reporter import Result
+from smarts import hpc
 
 
 NOT_IMPLEMENTED_ERROR = "IS NOT YET IMPLEMENTED"
@@ -110,10 +111,9 @@ class TestManager:
         self.launch_names = None
 
         # Based on if the env we have is an HPC or not, initalize the HPC
-        if env.hpc == True:
+        if env.hpc:
             # Initalize HPC
-            raise NotImplementedError("HPC COMPATABLITY IS NOT YET IMPLEMENTED")
-            pass
+            self.hpc = hpc.init_hpc(env.hpc)
         else:
             self.hpc = None
 
@@ -352,7 +352,6 @@ class TestManager:
         num_tests = len(tests)
         finished = 0
         avaliable_cpus = self.env.ncpus
-        self.hpc = None
         run = True
         requested_test_names = tests
 
