@@ -43,7 +43,7 @@ An example Description section that contains all necessary parts follows:
 
 \begin{lstlisting}[language=yaml, 
                    caption={Examlpe Cheyenne Environment.yaml Description},
-                   label=cheyenne_desc_example]
+                   label={lst:cheyenne_desc_example}]
 // cheyenne-description.yaml
 Description:
     Name: Cheyenne
@@ -71,7 +71,29 @@ Cores}.
 \section{HPC Options}
 \label{sec:hpc_options}
 
-Section on HPC Options - Yet to be written.
+The \hpcoptions section of the Environment.yaml file specifies default options
+that can be passed to an HPC instance. For instance, a user might want to
+always have the workload manager send an email on a job completion to their
+email, or they may want to always run under a specific account key. If they do,
+they can specify those options and arguments in the \hpcoptions.
+
+The \hpcoptions can contain any options that would be use in the job script for
+that machine's workload manager.
+
+Tests will need to retrieve the \hpcoptions dictionary from their environment
+class instance and pass it to {\tt HPC.launch\_job}. Tests can also edit
+existing dictionary items or add new ones by editing the \hpcoptions
+dictionary.
+
+\begin{lstlisting}[language=yaml, 
+                   caption={Examlpe HPC\_Options},
+                   label={lst:hpc_options}]
+HPC_OPTIONS:
+  M: email@gmail.com 
+  q: regular
+  j: oe
+\end{lstlisting}
+
 
 \section{Modsets}
 \label{sec:modsets}
@@ -85,13 +107,13 @@ A installation of a compiler, MPI implementation, or library can be described
 as either a module or as a environment variable combination. 
 
 % TODO: Update this to use \ref
-\ref{intel_modset_example} contains an example Modset section with a single
-modset for a {\tt INTEL-19.0.1} compiler, this specific example is take from
-the Cheyenne.yaml environment file.
+Listing \ref{lst:intel_modset_example} contains an example Modset section with
+a single modset for a {\tt INTEL-19.0.1} compiler, this specific example is
+take from the Cheyenne.yaml environment file.
 
 \begin{lstlisting}[language=yaml, 
                    caption={Example Cheyenne Intel Modset},
-                   label=intel_modset_examlpe]
+                   label={lst:intel_modset_example}]
 // cheyenne-intel-modset.yaml
 Modsets:
   ###############
@@ -142,10 +164,10 @@ Modsets:
         Value: single
 \end{lstlisting}
 
-Like the {\tt INTEL-19.0.1} modset in \ref{intel_modset_example} modsets can
-contain three sections: the {\tt Compiler}, {\tt MPI}, and {\tt Libs} section.
-A modset is required to contain the {\tt Compiler} and {\tt Libs} sections, but
-the {\tt MPI} section is optional.
+Like the {\tt INTEL-19.0.1} modset in Listing \ref{lst:intel_modset_example}
+modsets can contain three sections: the {\tt Compiler}, {\tt MPI}, and {\tt
+Libs} section.  A modset is required to contain the {\tt Compiler} and {\tt
+Libs} sections, but the {\tt MPI} section is optional.
 
 \subsection{Compilers}
 \label{subsec:modset_compilers}
@@ -164,15 +186,16 @@ the \module keyword, the name specified with the \module keyword and the
 version number specified with the \version keyword are combined to load a
 specific lmod module version of the compiler. The second, \version is used in
 conjunction with \executables keyword to confirm the correct compiler has been
-loaded. See \ref{chap:environment_class} for more information.
+loaded. See Chapter \ref{chap:environment_class} for more information on how
+the executables section is used when loading a modset.
 
-In the {\tt Intel-19.0.2} modset from \ref{lst:intel_modset_example}, the
-compiler is specified with the name intel, and, if loaded, will be loaded by
-using the lmod module Python command to load intel/19.0.2. This occurs in the
-same way one would load intel/19.0.2 using the module command via the command
-line: {\tt module load intel/19.0.2}. Lastly, when loaded, SMARTs will test to
-see if the correct version of {\tt ifort} and {\tt icc}, which are listed in
-the executables, have been loaded correctly.
+In the {\tt Intel-19.0.2} modset from Listing \ref{lst:intel_modset_example},
+the compiler is specified with the name intel, and, if loaded, will be loaded
+by using the lmod module Python command to load intel/19.0.2. This occurs in
+the same way one would load intel/19.0.2 using the module command via the
+command line: {\tt module load intel/19.0.2}. Lastly, when loaded, SMARTs will
+test to see if the correct version of {\tt ifort} and {\tt icc}, which are
+listed in the executables, have been loaded correctly.
 
 There must only be one compiler section per modset.
 
@@ -194,15 +217,15 @@ environment variables. The implementation of the \libs is meant to be flexible
 and allow tests to access libraries and needed environment variables.
 
 Individual entries to the \libs section can specified as either a module
-(\ref{lst:example_library_module}) or an environment variable (\ref{
-lst:example_library_env_var}). Library can either be specified as with the
-\module and optional \version keywords as seen in
-\ref{lst:example_library_module} or as a environment variable using the
-\name and \valueenv keywords as seen in \ref{lst:example_library_env_var}.
+(Listing \ref{lst:example_library_module}) or an environment variable (Listing
+\ref{lst:example_library_env_var}). Library can either be specified as with
+the \module and optional \version keywords as seen in Listing
+\ref{lst:example_library_module} or as a environment variable using the \name
+and \valueenv keywords as seen in Listing \ref{lst:example_library_env_var}.
 
 \begin{lstlisting}[language=yaml, 
                    caption={Example Library Module},
-                   label=lst:example_library_module]
+                   label={lst:example_library_module}]
 - netcdf:
   Module: netcdf
   Version: 3.6.3
@@ -210,7 +233,7 @@ lst:example_library_env_var}). Library can either be specified as with the
 
 \begin{lstlisting}[language=yaml, 
                    caption={Example Library Environment Variable},
-                   label=lst:example_library_env_var]
+                   label={lst:example_library_env_var}]
 - netcdf:
   Name: NETCDF
   Value: /glade/work/duda/libs-intel19.0.2

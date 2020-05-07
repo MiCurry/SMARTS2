@@ -1,2 +1,254 @@
-\chapter{Creating Tests}
+\chapter{Tests}
 \label{chap:tests}
+
+The unofficial motto of SMARTS is: "If Python can do it, SMARTS can do it!"
+SMARTS' tests have the ability to tests virtually any kind of program or
+operation system function, as long as the said program can be ran and checked
+for success or failure in Python, it can be a test.
+
+SMARTS tests can contain any number of Python functions, classes, modules or
+libraries and any number of external programs or executables.
+
+Python contains a number of different methods and modules for launching and
+managing executables and subprocess so launching external executables, such as
+a atmospheric model, is possible. 
+
+Each test will at least have a set structure so the SMARTS TestManager can
+load, launch and receive the results of tests. Each tests will therefore have
+an interface in the form of a single class and a single python function.
+
+This chapter describes the needed interfaces for each test.
+
+\section{Test Structure}
+\label{sec:test_structure}
+
+The test interface will consist of a file, a class, and a function which will
+reside in their own directory. The directory, file and class will all need to
+have the same name. Listing \ref{lst:example_test_structure} shows an example
+test directory and two example tests.
+
+\begin{lstlisting}[language=Clean, 
+                   caption={Example Test Structure},
+                   label={lst:example_test_structure}]
+\test_directory
+    \test1
+        test1.py
+    \test2
+        test2.py
+\end{lstlisting}
+
+The name used for the test directory, test file and the test class are used as
+the test launch name.
+
+Each class will need to have the following attributes:
+
+\begin{itemize}
+    \item {\tt ncpus} - {\tt int} - Required 
+    \item {\tt test\_name} - {\tt str} - Optional
+    \item {\tt test\_description} - {\tt str} - Optional
+    \item {\tt dependencies} - {\tt list of str} - Optional
+\end{itemize}
+
+% Details about the above attributes
+
+The {\tt ncpus} is the only required attribute and will designate the amount of
+CPUs that this test will use. Based on this attribute, the TestManager will
+use this number to scheduler tests depending on the maximum number allowed
+processes.
+
+Each test file will need to define a class of the same name as the test
+test directory name and the test file name. The class will need to define a
+single function, \run.
+
+The \run function will need to take the following arguments.
+
+\begin{enumerate}
+    \item {\tt self} - Reference to this test instance.
+    \item {\tt env} - The environment class that contains information on the
+    current environment. The parsed env.yaml file can be found in {\tt
+    env.env}. See chapters \ref{chap:environment_file_spec} and
+    \ref{chap:environment_class} for more information on the environment class.
+    \item {\tt result} - The result object which is used to communicated
+    results from the test to the {\tt TestManager}.
+    \item {\tt src\_dir} - The directory that contains the code to be tested. If
+    SMARTS was started from the {\tt smarts.py} command line interface this is
+    the directory that was passed via the {\tt -s} command line option. 
+    \item {\tt test\_dir} - The path to the test direction. Similar to the {\tt
+    src\_dir} argument, if SMARTS was started from the {\tt smarts.py} command
+    line interface the {\tt test\_dir} is the directory that was passed via the
+    {\tt -t} command line option.
+    \item {\tt hpc} - An instance of the HPC class, instantiated with the HPC
+    interface queuing system that was specified in the Description section of
+    the env.yaml file. This object can be used to schedule jobs upon the
+    current HPC (if one is present).
+\end{enumerate}
+
+% Details about the above arguments 
+
+\begin{lstlisting}[language=Python, 
+                   caption={Example test1.py},
+                   label={lst:example_test}]
+import os
+
+class test:
+    ncpus = 1
+    test_name = 'Test 1'
+    test_description = 'SMARTS example test'
+    dependencies = None
+
+    def run(self, env, result, src_dir, test_dir, hpc):
+        if True:
+            result.result = "PASSED"
+            result.message = "True is true!"
+        else:
+            result.result = "FAILED"
+            result.message = "It appears True is no longer fact"
+\end{lstlisting}
+
+
+\section{Test Results}
+\label{sec:results}
+
+Tests are useless if they cannot communicate their results to tester. Each test
+is passed an instance of the {\tt Result} class. The {\tt Result} class is
+defined in Listing \ref{lst:result_class}. The ResultClass contains attributes
+{\tt result} and {\tt msg}
+
+\begin{lstlisting}[language=Python, 
+                   caption={Result class definition},
+                   label={lst:result_class}]
+class ResultClass:
+    result = None
+    msg = None
+    directory = None
+\end{lstlisting}
+
+\section{Starting HPC Jobs}
+\label{sec:hpc_jobs}
+
+NOTE TO USERS ABOUT SHARED RESOURCES
+
+Tests in SMARTS have the ability to launch HPC jobs from within tests.
+Currently, only PBS HPC's are supported, but in the future SLURM will be
+supported.
+
+Jobs can be launched via the {\tt HPC} instanced passed into the argument of
+every test. Upon reading the specified environment.yaml file on started, SMARTS
+will initalize the corosponding HPC class (at this point either PBS or None),
+which will be passed to each test.
+
+To have a test determine if its on an HPC machine or not, it can compare the
+{\tt HPC} instance to the currently aviable types (currently only {\tt PBS},
+but in the future {\tt SLURM}). HPC can currently have the possible values:
+
+\begin{itemize}
+    \item {\tt None} - If the HPC is {\tt None}, then the current machine is
+    not an HPC.
+    \item {\tt "PBS"} - If the HPC is {\tt PBS}, then the machine is a PBS
+    machine.
+\end{itemize}
+
+Tests can then use the two methods provided to launch a PBS batch job. These
+methods are: {\tt HPC.launch\_script} and {\tt HPC.launch\_job}. {\tt
+launch\_script} provides a way to launch already created batch scripts while
+{\tt launch\_job} provides a method for directly specifying a job.
+
+Both of the HPC job commands above are blocking. So, if a test calls either
+{\tt launch\_job} or {\tt launch\_script}, that test will block until the batch
+job is completed. Upon successfully completion, \launchscript and \launchjob
+will return True; if the job is not able to be successfully submitted to the
+queuing system the two functions will return False.
+
+HPC and its two functions, \launchscript and \launchjob provide no
+functionality for checking the result of an HPC job, they only provide whether
+jobs were successfully submitted to the queue and finished. Just because
+\launchscript or \launchjob returns True does not necessary mean the test
+completed successfully, only that it was accepted, ran and finished on the HPC.
+It is up to the test itself to check the result of the job (i.e. by reading log
+or netcdf files etc.).
+
+In order to help facilitate potential problems and to ensure correct job
+submission, they HPC logs all commands sent to the HPC and all received
+messages from STDIN and STDOUT. If HPC queuing errors occurred, it is best to
+check this log file for more information.
+
+The name of the log file will be: {\tt smarts-hpc.SCRIPT-NAME.log}. Where
+SCRIPT-NAME is the name of the script used to submit the job (with any
+extension).
+
+\subsection{HPC Launch Job}
+\label{sec:launchjob}
+
+% HPC Launch test function description
+\begin{lstlisting}[language=Python, 
+                   caption={HPC.launch\_job},
+                   label={lst:hpc.launch_job},
+                   float]
+def launch_job(self,
+               executables,  # List of executables to run
+               name,         # Name of the HPC job
+               wallTime,     # Walltime in HH:MM:SS
+               queue,        # Desired queue
+               nNodes,       # Number of nodes
+               ncpus,        # Number of CPUS per node
+               nMPI,         # Number of MPI tasks per node
+               **kwargs):
+\end{lstlisting}
+
+\launchjob has the following arguments:
+
+\begin{enumerate}
+\item {\tt Executables} - A list of executables to be preformed by the job. For
+instance: source an environment file and launch the init\_atmosphere core. These
+executables will be ran in the order that they appear. For example: {\tt
+executables=['ulimit -s unlimited', 'source ~/setup\_cheyenne', 'mpiexec\_mpt
+./init\_atmosphere']}.
+
+\item {\tt name} - The name to give the HPC job (In PBS this is the '-N'
+option.)
+\item {\tt wallTime} - The wall time in hh:mm:ss
+\item {\tt queue} - The desired queue to use.
+\item {\tt nNodes} - The number of nodes to use
+\item {\tt ncpus} - The number of cpus to use per node
+\item {\tt nMPI} - The number of MPI tasks to use per node
+\item {\tt**kwargs} - Optional keyword arguments
+\begin{itemize} 
+\item {\tt shell} - The desire shell to use for the script. This line will
+appear at the top of th shell script. The default is: {\tt \#!/usr/bin/env
+bash}.
+\item {\tt pbs\_options} - *Soon to be just options* - A dictionary of
+additional options to use in the script. All key, value pairs of the dictionary
+will be added to the script. The key will be the option argument and its
+corresponding option will be the value of the option argument. For instance:
+{\tt options = \{ '-M' : 'email\_address' \} } will be translated and inserted
+to {\tt \#PBS -M email\_address} for a PBS job script.
+\item {\tt script\_name} - The desired script name. Default is {\tt
+script.pbs}.
+\end{itemize}
+\end{enumerate}
+
+Given the arguments provided and optional keyword arguments provided to {\tt
+HPC.launch\_job}, {\tt HPC.launch\_job} creates a job script (script.pbs) and
+calls the corresponding queue submission command on that script.
+
+\subsection{HPC.launch\_script}
+\label{sec:hpc_script}
+
+\launchscript allows a test to run a batch script that was created before by
+the user. The function definition of \launchscript can be seen in Figure
+\ref{lst:hpc.launch_script}. \launchscript takes a single argument, {\tt
+script}, which should point to a valid batch script. This script will be
+submitted the corresponding HPC workload manager. 
+
+\launchscript has a single optional keyword argument, {\tt cl\_options} which
+will be a list of options to pass the command to submit the script. Options and
+their arguments (if they have any) should each be separate elements of the
+list. For instance: {\tt cl\_options = ['-M', 'email\_address']}. Options are
+added to the submission command in the order they appear.
+
+% HPC Launch Script function description
+\begin{lstlisting}[language=Python, 
+                   caption={HPC.launch\_script},
+                   label={lst:hpc.launch_script}]
+def launch_script(self, script, **kwargs):
+\end{lstlisting}

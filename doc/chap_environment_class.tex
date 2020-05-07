@@ -23,7 +23,7 @@ below.
 
 \begin{lstlisting}[language=Python, 
                    caption={list\_modset Definition},
-                   label=list_modset_def]
+                   label={lst:list_modset_def}]
 def list_modsets(self, name=None, *args, **kwargs):
     """ Return a list of modsets found in the parsed environment.yaml file, if
     name is specified then modset names that contain that name will be
@@ -35,11 +35,11 @@ def list_modsets(self, name=None, *args, **kwargs):
 \end{lstlisting}
 
 The \listModsets command can be used retrive the names of modsets in a list
-which can later be used in the \loadModset command (see
-\ref{sec:load-modsets}). As seen in \ref{list-modset-def}, if \listModsets is
-ran and {\tt name=None} then all the Modsets contained will be returned;
-however, if {\tt name} is set, the Modsets that contain the name specified in
-name will be retrived.
+which can later be used in the \loadModset command (see Section
+\ref{sec:load-modsets}). As seen in Listing \ref{lst:list_modset_def}, if
+\listModsets is ran and {\tt name=None} then all the Modsets contained will be
+returned; however, if {\tt name} is set, the Modsets that contain the name
+specified in name will be retrived.
 
 For instance, if SMARTS was initiated with a Environment.yaml file that
 contained the modsets:
