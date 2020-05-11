@@ -2,8 +2,9 @@
 
 \usepackage[dvipsnames]{xcolor}
 \usepackage{listings}
-\usepackage{color}
 \usepackage{xspace}
+\usepackage{hyperref}
+\usepackage{color}
 
 \setlength{\topmargin}{0in}
 \setlength{\headheight}{0in}
@@ -24,7 +25,7 @@
 \newcommand{\mpi}{{\tt MPI}\xspace}
 \newcommand{\module}{{\tt Module}\xspace}
 \newcommand{\version}{{\tt Version}\xspace}
-\newcommand{\path}{{\tt Path}\xspace}
+\newcommand{\pathname}{{\tt Path}\xspace}
 \newcommand{\executables}{{\tt Executables}\xspace}
 \newcommand{\name}{{\tt Name}\xspace}
 \newcommand{\valueenv}{{\tt Value}\xspace}
@@ -44,6 +45,7 @@
 \newcommand{\dependencies}{{\tt dependencies}\xspace}
 \newcommand{\launchjob}{{\tt HPC.launch\_job}\xspace}
 \newcommand{\launchscript}{{\tt HPC.launch\_script}\xspace}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Yaml Listing Definition
@@ -94,14 +96,26 @@ literate =    {---}{{\ProcessThreeDashes}}3
         numberstyle=\tiny,
         frame=single,
         float
-        }
+}
 
-\begin{document}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue
+}
+
 \title{SMARTS - Simple MPAS Atmosphere Regression Testing System - User Guide}
 \date{v.000, 21 January 2020}
 
+\begin{document}
+
+
+\begin{titlepage}
 \maketitle
+\end{titlepage}
+
+
 \tableofcontents
+
 
 \chapter{Introduction}
 \label{chap:intro}
