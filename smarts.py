@@ -156,28 +156,32 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(prog="smarts",
                                      description="A regression testing system for MPAS",
-                                     epilog="Don't Panic (This is the Epilog Area)"
+                                     epilog=None
                                     )
 
-    parser.add_argument('-e', '--env-file',
+    required = parser.add_argument_group('Required arguments')
+    optional = parser.add_argument_group('Optional arguments')
+
+    required.add_argument('-e', '--env-file',
                         dest='env',
                         help='The location of the env.yaml file',
                         metavar='env.yaml',
                         default=None,
                         nargs=1)
-    parser.add_argument('-s', '--src-dir',
+    required.add_argument('-s', '--src-dir',
                         dest='src',
                         help='The directory that holds the code to test changes (MPAS-Model)',
                         metavar='dir',
                         default=None,
                         nargs=1)
-    parser.add_argument('-t', '--test-dir',
+    required.add_argument('-t', '--test-dir',
                         dest='dir',
                         help='The location of the test directory',
                         metavar='dir',
                         default=None,
                         nargs=1)
-    parser.add_argument('-v', '--verbose',
+
+    optional.add_argument('-v', '--verbose',
                         dest='verbose',
                         help="Output debug level",
                         type=int,
