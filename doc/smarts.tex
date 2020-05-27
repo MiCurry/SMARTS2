@@ -33,6 +33,12 @@
 \newcommand{\run}{{\tt run}\xspace}
 \newcommand{\hpcoptions}{{\tt HPC\_Options}\xspace}
 
+\newcommand{\smartspy}{{\tt smarts.py}\xspace}
+\newcommand{\listcmd}{{\tt list}\xspace}
+\newcommand{\runcmd}{{\tt run}\xspace}
+\newcommand{\listtests}{{\tt list tests}\xspace}
+\newcommand{\listtest}{{\tt list test test-name}\xspace}
+
 % Environment.class Keywords
 \newcommand{\listModsets}{{\tt list\_modsets}\xspace}
 \newcommand{\loadModset}{{\tt load\_modset}\xspace}
@@ -108,53 +114,13 @@ literate =    {---}{{\ProcessThreeDashes}}3
 
 \begin{document}
 
-
 \begin{titlepage}
 \maketitle
 \end{titlepage}
 
-
 \tableofcontents
 
-
-\chapter{Introduction}
-\label{chap:intro}
-
-This document is a placeholder for a future user document for SMARTS.
-
-\begin{lstlisting}[language=yaml,
-                   caption={YAML Example Code Listing},
-                   label=yaml_exmaple]
-// example.yaml Description:
-    Name: Cheyenne
-    Max Cores: 4
-    Modules: True
-    LMOD_CMD: /path/to/lmod_cmd
-    HPC: PBS
-
-Modsets:
-    Libs:
-        - One
-        - Two
-        - Three
-\end{lstlisting}
-
-\begin{lstlisting}[language=Python,
-                   caption={Example Python Listing},
-                   label=python_example]
-// example_test.py
-import time
-
-class example_test:
-    test_name = "Example Test"
-    test_description = "This test makes a file and checks to see if it was" \
-                       "created or not"
-    nCPUs = 1
-    dependencies = [None]
-
-    def run(self, env, result, src_dir, test_dir, hpc):
-        pass
-\end{lstlisting}
+\input{introduction.tex}
 
 \input{chap_smarts_cl.tex}
 
@@ -163,11 +129,5 @@ class example_test:
 \input{chap_environment_file.tex}
 
 \input{chap_environment_class.tex}
-
-\appendix
-
-\input{appendix_example_envs.tex}
-
-\input{appendix_example_tests.tex}
 
 \end{document}

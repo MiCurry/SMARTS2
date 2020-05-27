@@ -4,28 +4,27 @@
 The unofficial motto of SMARTS is: "If Python can do it, SMARTS can do it!"
 SMARTS' tests have the ability to tests virtually any kind of program or
 operation system function, as long as the said program can be ran and checked
-for success or failure in Python, it can be a test.
+for success or failure via Python commands, it can be a test.
 
 SMARTS tests can contain any number of Python functions, classes, modules or
-libraries and any number of external programs or executables.
+libraries and run any number of external programs or executables. 
 
 Python contains a number of different methods and modules for launching and
 managing executables and subprocess so launching external executables, such as
-a atmospheric model, is possible. 
+an atmospheric model, is possible.
 
-Each test will at least have a set structure so the SMARTS TestManager can
+All test will at least have a set structure so the SMARTS TestManager can
 load, launch and receive the results of tests. Each tests will therefore have
 an interface in the form of a single class and a single python function.
 
-This chapter describes the needed interfaces for each test.
+This chapter describes that interfaces.
 
 \section{Test Structure}
 \label{sec:test_structure}
 
-The test interface will consist of a file, a class, and a function which will
-reside in their own directory. The directory, file and class will all need to
-have the same name. Listing \ref{lst:example_test_structure} shows an example
-test directory and two example tests.
+All SMARTS complaint tests will consist of (at least) a directory, a file and a
+class all with the same name. Listing \ref{lst:example_test_structure} shows an
+example test directory and two example tests.
 
 \begin{lstlisting}[language=Clean, 
                    caption={Example Test Structure},
@@ -38,59 +37,72 @@ test directory and two example tests.
 \end{lstlisting}
 
 The name used for the test directory, test file and the test class are used as
-the test launch name.
+the test launch name as this is the name that the user will use to run the test
+via the \smartspy command line interface.
 
 Each class will need to have the following attributes:
 
 \begin{itemize}
-    \item {\tt ncpus} - {\tt int} - Required 
-    \item {\tt test\_name} - {\tt str} - Optional
-    \item {\tt test\_description} - {\tt str} - Optional
-    \item {\tt dependencies} - {\tt list of str} - Optional
+    \item {\tt ncpus} - {\tt int} - Required - The number of CPUs that this
+    test will used. When this test is ran, SMARTS will subtract this number
+    from the number of available CPUS and will only launch other tests if
+    enough CPUs are available.
+    \item {\tt test\_name} - {\tt str} - Optional - This is the 'long name' of
+    the test and is currently only shown when the \listtest command is run.
+    However, providing it offers others who are reading the test (or who have
+    run \listtest more details on the test).
+    \item {\tt test\_description} - {\tt str} - Optional - Similar to the {\tt
+    test\_name} the {\tt test\_description} provides information to other users
+    (and perhaps your future self) on the details of specific tests. While it
+    is optional it is recommend that a good description of the test be
+    provided.
+    \item {\tt dependencies} - {\tt list of str} - Optional - If a test is
+    dependent upon the result of another test, then that tests launch name
+    should be added into the {\tt dependencies} list. If a test list another
+    test in its dependencies (or multiple tests) it will only be ran if all of
+    its dependents complete successfully. Listing
+    \ref{lst:example_test_with_dep} shows an example test with a single
+    dependency.
 \end{itemize}
-
-% Details about the above attributes
-
-The {\tt ncpus} is the only required attribute and will designate the amount of
-CPUs that this test will use. Based on this attribute, the TestManager will
-use this number to scheduler tests depending on the maximum number allowed
-processes.
 
 Each test file will need to define a class of the same name as the test
 test directory name and the test file name. The class will need to define a
-single function, \run.
+single function, \run. The \run function will be starting location of
+execution when SMARTS runs a test.
 
 The \run function will need to take the following arguments.
 
 \begin{enumerate}
     \item {\tt self} - Reference to this test instance.
     \item {\tt env} - The environment class that contains information on the
-    current environment. The parsed env.yaml file can be found in {\tt
-    env.env}. See chapters \ref{chap:environment_file_spec} and
+    current environment. See chapters \ref{chap:environment_file_spec} and
     \ref{chap:environment_class} for more information on the environment class.
     \item {\tt result} - The result object which is used to communicated
     results from the test to the {\tt TestManager}.
-    \item {\tt src\_dir} - The directory that contains the code to be tested. If
-    SMARTS was started from the {\tt smarts.py} command line interface this is
-    the directory that was passed via the {\tt -s} command line option. 
+    \item {\tt src\_dir} - The directory that contains the code to be tested.
+    If SMARTS was started from the {\tt smarts.py} command line interface this
+    is the directory that was passed via the {\tt -s} command line option. Use
+    this directory path to copy or link files into the current working
+    directory.
     \item {\tt test\_dir} - The path to the test direction. Similar to the {\tt
     src\_dir} argument, if SMARTS was started from the {\tt smarts.py} command
     line interface the {\tt test\_dir} is the directory that was passed via the
-    {\tt -t} command line option.
+    {\tt -t} command line option. Use this directory path and the name of each
+    test to retrieve supplementary test files. For instance, a 
+    namelist.atmosphere file used for a idealized simulation.
     \item {\tt hpc} - An instance of the HPC class, instantiated with the HPC
     interface queuing system that was specified in the Description section of
     the env.yaml file. This object can be used to schedule jobs upon the
-    current HPC (if one is present).
+    current HPC (if one is present). See Section` \ref{sec:hpc_jobs} on starting
+    jobs via the HPC class.
 \end{enumerate}
-
-% Details about the above arguments 
 
 \begin{lstlisting}[language=Python, 
                    caption={Example test1.py},
                    label={lst:example_test}]
 import os
 
-class test:
+class test1:
     ncpus = 1
     test_name = 'Test 1'
     test_description = 'SMARTS example test'
@@ -105,14 +117,29 @@ class test:
             result.message = "It appears True is no longer fact"
 \end{lstlisting}
 
+\begin{lstlisting}[language=Python, 
+                   caption={Example Test With Dependencies},
+                   label={lst:example_test_with_dep}]
+import os
+
+class test2:
+    ncpus = 2
+    test_name = 'Test 2'
+    test_description = 'SMARTS example test dependent on Test1'
+    dependencies = ['test1']
+
+    def run(self, env, result, src_dir, test_dir, hpc):
+        ...
+\end{lstlisting}
 
 \section{Test Results}
 \label{sec:results}
 
 Tests are useless if they cannot communicate their results to tester. Each test
 is passed an instance of the {\tt Result} class. The {\tt Result} class is
-defined in Listing \ref{lst:result_class}. The ResultClass contains attributes
-{\tt result} and {\tt msg}
+defined in Listing \ref{lst:result_class}. The {\tt ResultClass} contains
+attributes {\tt result} and {\tt msg}. The {\tt ResultClass} can be see in
+Listing \ref{lst:result_class}.
 
 \begin{lstlisting}[language=Python, 
                    caption={Result class definition},
@@ -123,22 +150,43 @@ class ResultClass:
     directory = None
 \end{lstlisting}
 
+Each test is passed the {\tt ResultClass} object which can be used to
+communicate the tests result with SMARTS. Setting {\tt ResultClass.result} to
+either {\tt "PASSED} or {\tt "FAILED"} results in a pass or fail from that
+specific test respectively. The {\tt ResultClass.msg} attribute is an optional
+attribute that can describe the reason for failure (or success) of a test.
+
+These results will be communicated to the user in the tests results report when
+all tests finish completion, along with the error message.
+
+After a test completes, SMARTS will unscheduled a test if one of their
+dependencies returns a {\tt "FAILED"} result. Unscheduling a test results in
+its {\tt ResultClass.result} being set to {\tt "INCOMPLETE"}. If SMARTS updates
+a test (based on the {\tt "FAILED"} result from another test it will
+recursively unscheduled any test that is dependent upon it.
+
+Setting {\tt Result.result} to {\tt None} has the same effect as setting the
+test to {\tt "FAILED"}. {\tt Result.result} is set to {\tt None} by default.
+
+In the future there are plans to have more extensive reporting tools. The main
+being a way to place the results of tests and plots into a single LaTeX file
+and compiled into a PDF which can enable testers to view tests and plots created
+by tests in a single place.
+
 \section{Starting HPC Jobs}
 \label{sec:hpc_jobs}
 
-NOTE TO USERS ABOUT SHARED RESOURCES
-
 Tests in SMARTS have the ability to launch HPC jobs from within tests.
-Currently, only PBS HPC's are supported, but in the future SLURM will be
+Currently, only PBS HPC's are supported, but in the future SLURM will also be
 supported.
 
-Jobs can be launched via the {\tt HPC} instanced passed into the argument of
-every test. Upon reading the specified environment.yaml file on started, SMARTS
-will initalize the corosponding HPC class (at this point either PBS or None),
-which will be passed to each test.
+Jobs can be launched via the {\tt HPC} instanced passed into the run function
+of every test. Upon reading the specified environment.yaml file on started,
+SMARTS will initialize the corresponding HPC class (at this point either PBS or
+None), which will be passed to each test.
 
 To have a test determine if its on an HPC machine or not, it can compare the
-{\tt HPC} instance to the currently aviable types (currently only {\tt PBS},
+{\tt HPC} instance to the currently available types (currently only {\tt PBS},
 but in the future {\tt SLURM}). HPC can currently have the possible values:
 
 \begin{itemize}

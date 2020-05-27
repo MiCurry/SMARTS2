@@ -1,2 +1,184 @@
 \chapter{Command Line Interface - smarts.py}
 \label{chap:smarts_commandline}
+
+SMARTS can currently only be launched from the command line using Python via
+\smartspy. In the future there may be other options for launching SMARTS.
+
+The \smartspy command line program is a Python3 program and should be launched
+by using Python3. The \smartspy interface is built in the similar manner to the
+Git commandline tool in that there are commands and sub-commands. Different to
+the Git commandline tool, \smartspy has a number of options that are required
+to run.
+
+Listing \ref{lst:smarts_help} shows the usage and help message for \smartspy.
+There are three required arguments, which are listed in the 'Required
+Arguments' section. These three requirements are:
+
+\begin{itemize}
+    \item {\tt -e/--env-file env.yaml} - The Envrionment.yaml file that
+    describes the current machine. This file describes the machine and any
+    specified compilers or libraries to SMARTS so that tests are able to load
+    and unload tests across different machines. See Chapters
+    \ref{chap:environment_file_spec} and \ref{chap:environment_class} for more
+    information on specifying and using the environment.yaml file.
+
+    \item {\tt -s/--src-dir dir} - The directory of changes to test. This
+    directory path will be passed to each test (as the {\tt src\_dir} argument)
+    and will allow tests to copy soruce code or executables for regression
+    testing. This directory can be located anywhere on the filesystem. See
+    Chapter \ref{chap:tests} for more infromation on using the directory from
+    the {\tt -s} argument in tests.
+
+    \item {\tt -t/--test-dir dir} - The directory that contains the desired
+    tests to run. This argument does two things. One, it shows SMARTS where
+    tests can be loaded. SMARTS will look in this directory for valid tests and
+    will only load tests from this directory. Secondly, it passes this path to
+    each test which allows tests to have access to any supplementary files that
+    they may need. For instance this could be a namelist or streams file that
+    is specific for a spcific test.
+\end{itemize}
+
+All three of these requirments arguments must be specified or \smartspy will
+return an error. After these required arguments commands and their subcommands
+may be specified. The two commands and their subcommands are:
+
+\begin{itemize}
+    \item {\tt list } - The \listcmd can be used to display infromation of the
+    current SMARTS system. At present, the list command can only be used to
+    list tests and test information, but in the future it may be expanded
+    to print other infromation. The subcommands for \listcmd are:
+    \begin{itemize}
+        \item {\tt list tests} - List the valid and invalid tests that are
+        found the the directory passed to the {\tt -t/--test-dir}. See
+        \ref{sec:list} for more information.
+        \item {\tt list test test-name[s]} - Print out the additional
+        infromation on a specific test or test(s). See \ref{sec:list} for
+        additional information.
+    \end{itemize}
+    \item {\tt run test-name[s]} - Run the specified tests. See \ref{sec:run}
+    for more information.
+\end{itemize}
+
+\begin{lstlisting}[language=Clean,
+                   caption={smarts.py Help Message},
+                   label=lst:smarts_help]
+usage: smarts [-h] [-e env.yaml] [-s dir] [-t dir] [-v level] {list,run} ...
+
+A regression testing system for MPAS
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Required arguments:
+  -e env.yaml, --env-file env.yaml
+                        The location of the env.yaml file
+  -s dir, --src-dir dir
+                        The directory that holds the code to test changes
+                        (MPAS-Model)
+  -t dir, --test-dir dir
+                        The location of the test directory
+
+Optional arguments:
+  -v level, --verbose level
+                        Output debug level
+
+subcommands:
+  command description
+
+  {list,run}            Sub-command help message
+    list                List SMART's tests, test suites and compilers
+    run                 Run a test or a test-suite by name
+\end{lstlisting}
+
+\section{List}
+\label{sec:list}
+
+An example of the \listtest and its subcommands can be seen in Listing
+\ref{lst:smarts_list_tests_example}. The \listtest command will display two
+groups of tests. One for valid tests and another for invalid tests. Valid tests
+are tests that contain all the necessary parts to be successfully loaded and
+launched by SMARTS. Invalid tests, on the other hand, are tests that SMARTS
+could not load for one reason or another. Tests that contain syntax errors or
+are missing critical parts of a SMARTS test will be placed in invalid tests,
+along with the reason they were invalid.
+
+\begin{lstlisting}[language=Clean,
+                   caption={smarts.py List Tests Example},
+                   label=lst:smarts_list_tests_example]
+>>> python3.py smarts.py -e ./envs/cheyenne.yaml -s ~/mpas_model_changes -t
+./mpas_tests list tests
+Tests found in: /users/mcurry/smarts/smarts_mpas_test:
+Valid tests:
+  - bit_for_bit_tests -- Bit for Bit Test
+  - compile_test -- Test that MPAS compiles
+  - mpas_reg_tests -- Complete MPAS Regression Test
+  - smoke_test -- Smoke Test
+  - sst_update_test -- SST Update Test
+
+Invalid tests: (These tests were not able to be loaded)
+  x restart_test.restart_test -- EOL while scanning string literal (restart_test.py, line 12)
+\end{lstlisting}
+
+To find out more information on a test, one can run the {\tt list test
+[test-name]} command and smarts.py will print out additional information test
+information. This command can be used with any number of test names. Listing
+\ref{lst:smarts_list_test_name_example} provides an example for this command.
+
+\begin{lstlisting}[language=Clean,
+                   caption={smarts.py List Test Info},
+                   label={lst:smarts_list_test_name_example}]
+>>> python3.py smarts.py -e ./envs/cheyenne.yaml -s ~/mpas_model_changes -t
+./mpas_tests list test mpas_reg_tests
+    Run name: mpas_reg_tests
+   Long name: Complete MPAS Regression Test
+ Description: Run all MPAS regression tests
+       ncpus: 1
+Dependencies: ['compile_test', 'smoke_test', 'bit_for_bit_tests', 
+               'sst_update_test']
+\end{lstlisting}
+
+\section{Run}
+\label{sec:run}
+
+The \runcmd can be used with one or more test names. Doing so, will launch the
+specified tests through SMARTS, if those tests are valid. If they are not, an
+error will be reported and no tests will be ran.
+
+If all tests are valid and able to be loaded correctly, then SMARTS will create
+a new run directory will be created. Within this directory tests will be given
+their own directory, which will become their current working directory.
+Grabbing the results of one test (say a compiled executable from a compile
+test) can be done by using the current working directory path. All main test run
+directories will named {\tt run-smarts-YYYY-MM-DD-hh.mm.ss} with the date and
+time pieces being the date and time whne SMARTS was launched. 
+
+If a test has a test (or multiple tests) listed in its dependencies attribute,
+and that test is not specified in the run command, then it will automatcially
+be loaded and ran. Tests that are dependencies for other tests will be ran
+before their dependents and dependents will not run if any of their
+dependencies fail.
+
+For instance, in \ref{lst:smarts_list_test_name_example} specifying
+mpas\_reg\_testing to run will load and run all of the dependencies listed in
+the Dependencie's list. If any of these tests fail, then the result of
+mpas\_reg\_testing will be marked as {\tt INCOMPLETE}.
+
+Tests will only be loaded once per \smartspy command. It is not possible for
+SMARTS to run two of the same tests twice. This includes if a test is specified
+as a dependency and is specified to run via \smartspy.
+
+Running the same test twice should be done with seperate commands to \smartspy.
+
+\begin{lstlisting}[language=Clean,
+                   caption={smarts.py run tests example},
+                   label=lst:smarts_run_test_example]
+>>> python3.py smarts.py -e ./envs/cheyenne.yaml -s ~/mpas_model_changes -t
+./mpas_tests run mpas_reg_tests
+TEST RESULTS
+===============================================
+ - mpas_reg_tests - PASSED - "All regression tests passed"
+ - compile_test - PASSED - "MPAS compiled succesfully"
+ - smoke_test - PASSED - "Smoke test succesfull"
+ - bit_for_bit_tests - PASSED - "Bit-for-bit identical"
+ - sst_update_test - PASSED - "SST update runs as expected"
+\end{lstlisting}

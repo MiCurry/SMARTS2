@@ -1,18 +1,32 @@
- \chapter{Envrionment.yaml Machine Specification}
+ \chapter{Environment.yaml Machine Specification}
  \label{chap:environment_file_spec}
 
-A Environment.yaml file describes aspects and resources of specific machines
-that allow SMARTS to run tests across a multitude of machines. Each machine
-that will be used by SMARTS will need to have a corresponding Environment.yaml
-file, which will most likely be named that machines name followed by a .yaml
-file extension.
+Preforming regression tests across multiple machines and with different
+compilers and libraries is a necessary part of maintaining quality software.
+Especially if that software is intended to be used on a variety of machines
+with a variety of different compilers and libraries.
+
+All machines vary in the amount of resources they have present and how they
+manage compilers and libraries. A single test itself should not have to worry
+about the details of how a specific library is loaded on each specific machine
+and instead should be able to solely focus on preforming tests.
+
+The Environment.yaml and the Environment class work in tandem to load
+compilers and libraries across different machines to remove this burden from
+tests.
+
+Each machine used for testing will have its own unique Environment.yaml file
+and are in the form of the machines name followed by the {\tt .yaml} file
+extension.
 
 So for instance, the Cheyenne super computer's Environment.yaml file would be
-cheyenne.yaml, while Casper's would be casper.yaml.
+{\tt cheyenne.yaml}, while Casper's would be {\tt casper.yaml}.
 
-The information within an Environment.yaml file includes: whether the machine
-is an HPC or not; what type of HPC scheduler it uses (if any); the number of
-cores it uses; and compilers; libraries and MPI implementations.
+The information within an Environment.yaml file includes: the number of CPUs to
+use for testing, the type of HPC scheduler that it may use (if any), and the
+compilers, libraries, MPI implementations. It also contains information on how
+compilers and libraries can be loaded: either by using the LMOD module command
+or by setting environment variables.
 
 An Environment.yaml file contains two required section, with one optional
 section.
@@ -35,16 +49,15 @@ section.
 
 The Description sections describes the machine in general and includes
 information to inform SMARTS of the machines name, the number of CPU's
-available, whether or not the machine is an HPC (and if it is what type), if
-the machine is to use the LMOD or Modules program and, if it is, the location
-of the lmod command.
+to use, the HPC type (if any), if the machine is to use the LMOD program to
+load compilers and libraries.
 
-An example Description section that contains all necessary parts follows:
+An example Description section that contains all necessary parts can be found
+in Listing \ref{lst:cheyenne_desc_example}.
 
 \begin{lstlisting}[language=yaml, 
                    caption={Examlpe Cheyenne Environment.yaml Description},
                    label={lst:cheyenne_desc_example}]
-// cheyenne-description.yaml
 Description:
     Name: Cheyenne
     Max Cores: 4
@@ -53,12 +66,16 @@ Description:
     HPC: PBS
 \end{lstlisting}
 
-The example yaml file above is the Description section for the Cheyenne super
-computer. According to the description above, SMARTS will know that: it can
-load libraries, compilers and MPI implementations via the module command (see
-specifying libraries below); that Cheyenne is a super computer and uses the PBS
-scheduler; and that SMARTS can use up to four CPUs on the login nodes on
-Cheyenne.
+The example yaml file in Listing \ref{lst:cheyenne_desc_example} is the
+Description section for the Cheyenne super computer. According to the
+description above, SMARTS will know that: it can load libraries, compilers and
+MPI implementations via the module command (see specifying libraries below);
+that Cheyenne is a super computer and uses the PBS scheduler; and that SMARTS
+can use up to four CPUs on the login nodes on Cheyenne.
+
+The {\tt LMOD\_CMD} attribute is the path to the lmod command. On machines that
+use lmod, this can be found by printing the value of the {\tt LMOD\_CMD}
+environment variable.
 
 NOTE: The {\tt Max Cores} option in the Description specifies the number of
 maximum cores that can be used in the location where SMARTS is ran. So, if
@@ -94,19 +111,18 @@ HPC_OPTIONS:
   j: oe
 \end{lstlisting}
 
-
 \section{Modsets}
 \label{sec:modsets}
 
-The Modsets section describes compilers, MPI implementations and libraries.
-Because Fortran libraries most often need to be built with the compilers they
-are built with, modsets are used to describe combination of a compiler, MPI
-implementation and any number of libraries and/or environment variables.
+The Modsets section describes compilers, MPI implementations, libraries and
+environment variables. Because Fortran libraries most often need to be built
+with the compilers they are built with, modsets are used to describe
+combination of a single compiler, an MPI implementation and any number of
+libraries and environment variables.
 
 A installation of a compiler, MPI implementation, or library can be described
 as either a module or as a environment variable combination. 
 
-% TODO: Update this to use \ref
 Listing \ref{lst:intel_modset_example} contains an example Modset section with
 a single modset for a {\tt INTEL-19.0.1} compiler, this specific example is
 take from the Cheyenne.yaml environment file.
@@ -114,7 +130,6 @@ take from the Cheyenne.yaml environment file.
 \begin{lstlisting}[language=yaml, 
                    caption={Example Cheyenne Intel Modset},
                    label={lst:intel_modset_example}]
-// cheyenne-intel-modset.yaml
 Modsets:
   ###############
   # INTEL-19.0.2
@@ -164,38 +179,41 @@ Modsets:
         Value: single
 \end{lstlisting}
 
-Like the {\tt INTEL-19.0.1} modset in Listing \ref{lst:intel_modset_example}
-modsets can contain three sections: the {\tt Compiler}, {\tt MPI}, and {\tt
+Modsets can contain three sections: the {\tt Compiler}, {\tt MPI}, and {\tt
 Libs} section.  A modset is required to contain the {\tt Compiler} and {\tt
 Libs} sections, but the {\tt MPI} section is optional.
 
 \subsection{Compilers}
 \label{subsec:modset_compilers}
 
-The compiler section of a modset describes information needed for tests to load
-and use a specific compiler. It includes the compilers: name (\name),
-version (\version), a list of compiler executables (\executables) and
-either the module name (\module), or the path to the compilers
-installation directory (\pathname).
+The compiler section of a modset describes information needed to load a
+specific compiler. It includes the compilers: name (\name), version (\version),
+a list of compiler executables (\executables) and either the module name
+(\module), or the path to the compilers installation directory (\pathname).
 
 While the \name keyword is required in the Compiler section, it is not actively 
 used by SMARTS, but provides readability for users and for tests.
 
-The \version keyword serves two purposes. First, if \version is specified with
-the \module keyword, the name specified with the \module keyword and the
-version number specified with the \version keyword are combined to load a
-specific lmod module version of the compiler. The second, \version is used in
-conjunction with \executables keyword to confirm the correct compiler has been
-loaded. See Chapter \ref{chap:environment_class} for more information on how
-the executables section is used when loading a modset.
+The \version keyword serves two purposes. 
+
+First, if \version is specified with the \module keyword, the name specified
+with the \module and the version number are appended together to load a
+specific version of the compiler. This is equivalent to running {\tt module
+load gnu/8.3.0} or {\tt module load gnu/9.1.0}.
+
+Second, the \version keyword is used in conjunction with executables found
+under the \executables keyword to confirm the correct compiler has been loaded.
+See Chapter \ref{chap:environment_class} for more information on how the
+executables section is used when loading a modset.
 
 In the {\tt Intel-19.0.2} modset from Listing \ref{lst:intel_modset_example},
-the compiler is specified with the name intel, and, if loaded, will be loaded
-by using the lmod module Python command to load intel/19.0.2. This occurs in
-the same way one would load intel/19.0.2 using the module command via the
-command line: {\tt module load intel/19.0.2}. Lastly, when loaded, SMARTs will
-test to see if the correct version of {\tt ifort} and {\tt icc}, which are
-listed in the executables, have been loaded correctly.
+the compiler is specified with the name intel (denoted by the \module keyword),
+and, when loaded, will be loaded by using the lmod module Python command to
+load intel/19.0.2. This occurs in the same way one would load the {\tt
+intel/19.0.2} using the module command via the command line: {\tt module load
+intel/19.0.2}. Lastly, when loaded, SMARTs will test to see if the correct
+version of {\tt ifort} and {\tt icc}, which are listed in the executables, have
+been loaded correctly.
 
 There must only be one compiler section per modset.
 
@@ -203,9 +221,8 @@ There must only be one compiler section per modset.
 \label{subsec:modset_mpi}
 
 The \mpi section specifies an MPI installation and is specified in the same
-manner specified in the same manner as a compiler will be specified. Upon being
-loaded, the executables listed in \executables will be tested against the
-version listed in the \version keyword.
+manner as the compiler section. Upon being loaded, the executables listed in
+\executables will be tested against the version listed in the \version keyword.
 
 The \mpi section is not required to be present in a modset.
 
@@ -218,7 +235,7 @@ and allow tests to access libraries and needed environment variables.
 
 Individual entries to the \libs section can specified as either a module
 (Listing \ref{lst:example_library_module}) or an environment variable (Listing
-\ref{lst:example_library_env_var}). Library can either be specified as with
+\ref{lst:example_library_env_var}). Libraries can either be specified as with
 the \module and optional \version keywords as seen in Listing
 \ref{lst:example_library_module} or as a environment variable using the \name
 and \valueenv keywords as seen in Listing \ref{lst:example_library_env_var}.
