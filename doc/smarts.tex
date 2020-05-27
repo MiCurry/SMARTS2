@@ -1,5 +1,11 @@
 \documentclass[11pt]{report}
 
+\usepackage[dvipsnames]{xcolor}
+\usepackage{listings}
+\usepackage{xspace}
+\usepackage{hyperref}
+\usepackage{color}
+
 \setlength{\topmargin}{0in}
 \setlength{\headheight}{0in}
 \setlength{\headsep}{0in}
@@ -8,23 +14,120 @@
 \setlength{\evensidemargin}{0in}
 \setlength{\oddsidemargin}{0in}
 
-\begin{document}
-\title{SMARTS - Simple MPAS Atmosphere Regression Testing System}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SMARTS' Keywords
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Environment.yaml Keywords
+\newcommand{\compiler}{{\tt Compilers}\xspace}
+\newcommand{\modset}{{\tt Modsets}\xspace}
+\newcommand{\libs}{{\tt Libs}\xspace}
+\newcommand{\mpi}{{\tt MPI}\xspace}
+\newcommand{\module}{{\tt Module}\xspace}
+\newcommand{\version}{{\tt Version}\xspace}
+\newcommand{\pathname}{{\tt Path}\xspace}
+\newcommand{\executables}{{\tt Executables}\xspace}
+\newcommand{\name}{{\tt Name}\xspace}
+\newcommand{\valueenv}{{\tt Value}\xspace}
+\newcommand{\pathenv}{{\tt PATH}\xspace}
+\newcommand{\run}{{\tt run}\xspace}
+\newcommand{\hpcoptions}{{\tt HPC\_Options}\xspace}
+
+\newcommand{\smartspy}{{\tt smarts.py}\xspace}
+\newcommand{\listcmd}{{\tt list}\xspace}
+\newcommand{\runcmd}{{\tt run}\xspace}
+\newcommand{\listtests}{{\tt list tests}\xspace}
+\newcommand{\listtest}{{\tt list test test-name}\xspace}
+
+% Environment.class Keywords
+\newcommand{\listModsets}{{\tt list\_modsets}\xspace}
+\newcommand{\loadModset}{{\tt load\_modset}\xspace}
+
+% Test Keywords
+\newcommand{\testRun}{{\tt run}\xspace}
+\newcommand{\testName}{{\tt test\_name}\xspace}
+\newcommand{\testDescription}{{\tt test\_description}\xspace}
+\newcommand{\npcus}{{\tt nCPUs}\xspace}
+\newcommand{\dependencies}{{\tt dependencies}\xspace}
+\newcommand{\launchjob}{{\tt HPC.launch\_job}\xspace}
+\newcommand{\launchscript}{{\tt HPC.launch\_script}\xspace}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Yaml Listing Definition
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\YAMLcolonstyle{\color{red}\mdseries}
+\newcommand\YAMLkeystyle{\color{black}\bfseries}
+\newcommand\YAMLvaluestyle{\color{blue}\mdseries}
+
+\makeatletter
+
+% here is a macro expanding to the name of the language
+% (handy if you decide to change it further down the road)
+\newcommand\language@yaml{yaml}
+
+\expandafter\expandafter\expandafter\lstdefinelanguage
+\expandafter{\language@yaml}
+{
+keywords={true,false,null,y,n},
+keywordstyle=\color{darkgray}\bfseries,
+basicstyle=\YAMLkeystyle,                   % assuming a key comes first
+sensitive=false,
+comment=[l]{\#},
+morecomment=[s]{/*}{*/},
+commentstyle=\color{purple}\ttfamily,
+stringstyle=\YAMLvaluestyle\ttfamily,
+moredelim=[l][\color{orange}]{\&},
+moredelim=[l][\color{magenta}]{*},
+moredelim=**[il][\YAMLcolonstyle{:}\YAMLvaluestyle]{:}, % switch to value style at :
+morestring=[b]',
+morestring=[b]",
+literate =    {---}{{\ProcessThreeDashes}}3
+              {>}{{\textcolor{red}\textgreater}}1
+              {|}{{\textcolor{red}\textbar}}1
+              {\ -\ }{{\mdseries\ -\ }}3,
+}
+
+% switch to key style at EOL
+\lst@AddToHook{EveryLine}{\ifx\lst@language\language@yaml\YAMLkeystyle\fi}
+\makeatother
+
+\newcommand\ProcessThreeDashes{\llap{\color{cyan}\mdseries-{-}-}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\lstset{basicstyle=\footnotesize\ttfamily,
+        breakatwhitespace=false,
+        breaklines=true,
+        numbers=left,
+        numberstyle=\tiny,
+        frame=single,
+        float
+}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue
+}
+
+\title{SMARTS - Simple MPAS Atmosphere Regression Testing System - User Guide}
 \date{v.000, 21 January 2020}
 
+\begin{document}
+
+\begin{titlepage}
 \maketitle
+\end{titlepage}
 
-\chapter{Introduction}
-\label{chap:intro}
+\tableofcontents
 
-This document is a placeholder for a future user document for SMARTS.
+\input{introduction.tex}
 
-\chapter{Envrionment.yaml Machine Specification}
+\input{chap_smarts_cl.tex}
 
-\chapter{The Environment Class}
+\input{chap_tests.tex}
 
-\chapter{Creating Tests}
+\input{chap_environment_file.tex}
 
-\chapter{Command Line Interface - smparts.py}
+\input{chap_environment_class.tex}
 
 \end{document}

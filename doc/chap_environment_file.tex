@@ -1,0 +1,259 @@
+ \chapter{Environment.yaml Machine Specification}
+ \label{chap:environment_file_spec}
+
+Preforming regression tests across multiple machines and with different
+compilers and libraries is a necessary part of maintaining quality software.
+Especially if that software is intended to be used on a variety of machines
+with a variety of different compilers and libraries.
+
+All machines vary in the amount of resources they have present and how they
+manage compilers and libraries. A single test itself should not have to worry
+about the details of how a specific library is loaded on each specific machine
+and instead should be able to solely focus on preforming tests.
+
+The Environment.yaml and the Environment class work in tandem to load
+compilers and libraries across different machines to remove this burden from
+tests.
+
+Each machine used for testing will have its own unique Environment.yaml file
+and are in the form of the machines name followed by the {\tt .yaml} file
+extension.
+
+So for instance, the Cheyenne super computer's Environment.yaml file would be
+{\tt cheyenne.yaml}, while Casper's would be {\tt casper.yaml}.
+
+The information within an Environment.yaml file includes: the number of CPUs to
+use for testing, the type of HPC scheduler that it may use (if any), and the
+compilers, libraries, MPI implementations. It also contains information on how
+compilers and libraries can be loaded: either by using the LMOD module command
+or by setting environment variables.
+
+An Environment.yaml file contains two required section, with one optional
+section.
+
+\begin{itemize}
+\item Required Sections
+    \begin{itemize}
+        \item {\tt Description} - Describes general information about the machine
+        \item {\tt Modsets} - Describes different compiler, MPI installation and library combinations
+    \end{itemize}
+\item Optional Sections
+    \begin{itemize}
+        \item {\tt PBS\_OPTIONS} - Optional default options to be passed to PBS jobs
+        \item {\tt SLURM\_OPTIONS} - Optional default options to be passed to Slurm jobs
+    \end{itemize}
+\end{itemize}
+
+\section{Description}
+\label{section:description}
+
+The Description sections describes the machine in general and includes
+information to inform SMARTS of the machines name, the number of CPU's
+to use, the HPC type (if any), if the machine is to use the LMOD program to
+load compilers and libraries.
+
+An example Description section that contains all necessary parts can be found
+in Listing \ref{lst:cheyenne_desc_example}.
+
+\begin{lstlisting}[language=yaml, 
+                   caption={Examlpe Cheyenne Environment.yaml Description},
+                   label={lst:cheyenne_desc_example}]
+Description:
+    Name: Cheyenne
+    Max Cores: 4
+    Modules: True
+    LMOD_CMD: /glade/u/apps/ch/opt/lmod/8.1.7/lmod/libexec/lmod
+    HPC: PBS
+\end{lstlisting}
+
+The example yaml file in Listing \ref{lst:cheyenne_desc_example} is the
+Description section for the Cheyenne super computer. According to the
+description above, SMARTS will know that: it can load libraries, compilers and
+MPI implementations via the module command (see specifying libraries below);
+that Cheyenne is a super computer and uses the PBS scheduler; and that SMARTS
+can use up to four CPUs on the login nodes on Cheyenne.
+
+The {\tt LMOD\_CMD} attribute is the path to the lmod command. On machines that
+use lmod, this can be found by printing the value of the {\tt LMOD\_CMD}
+environment variable.
+
+NOTE: The {\tt Max Cores} option in the Description specifies the number of
+maximum cores that can be used in the location where SMARTS is ran. So, if
+SMARTS is ran on the login node of Cheyenne, and {\tt Max Cores} is set to
+{\tt 4}, then SMARTS will only use that many CPUs; however, this does not mean
+that a test cannot use more than 4 CPUs. A test could, for instance, launch a
+job via the HPC's batch node and use more than the specified amount in {\tt Max
+Cores}.
+
+\section{HPC Options}
+\label{sec:hpc_options}
+
+The \hpcoptions section of the Environment.yaml file specifies default options
+that can be passed to an HPC instance. For instance, a user might want to
+always have the workload manager send an email on a job completion to their
+email, or they may want to always run under a specific account key. If they do,
+they can specify those options and arguments in the \hpcoptions.
+
+The \hpcoptions can contain any options that would be use in the job script for
+that machine's workload manager.
+
+Tests will need to retrieve the \hpcoptions dictionary from their environment
+class instance and pass it to {\tt HPC.launch\_job}. Tests can also edit
+existing dictionary items or add new ones by editing the \hpcoptions
+dictionary.
+
+\begin{lstlisting}[language=yaml, 
+                   caption={Examlpe HPC\_Options},
+                   label={lst:hpc_options}]
+HPC_OPTIONS:
+  M: email@gmail.com 
+  q: regular
+  j: oe
+\end{lstlisting}
+
+\section{Modsets}
+\label{sec:modsets}
+
+The Modsets section describes compilers, MPI implementations, libraries and
+environment variables. Because Fortran libraries most often need to be built
+with the compilers they are built with, modsets are used to describe
+combination of a single compiler, an MPI implementation and any number of
+libraries and environment variables.
+
+A installation of a compiler, MPI implementation, or library can be described
+as either a module or as a environment variable combination. 
+
+Listing \ref{lst:intel_modset_example} contains an example Modset section with
+a single modset for a {\tt INTEL-19.0.1} compiler, this specific example is
+take from the Cheyenne.yaml environment file.
+
+\begin{lstlisting}[language=yaml, 
+                   caption={Example Cheyenne Intel Modset},
+                   label={lst:intel_modset_example}]
+Modsets:
+  ###############
+  # INTEL-19.0.2
+  ###############
+  INTEL-19.0.2:
+    Name: intel-19.0.2
+    Compiler:
+      Name: intel
+      Version: 19.0.2
+      Module: intel
+      Executables:
+        - ifort
+        - icc
+    MPI:
+      Module: mpt
+      Version: 2.19
+      Executables:
+        - mpicc
+        - mpif90
+    Libs:
+      - p-netcdf:
+        Name: PNETCDF
+        Value: /glade/work/duda/libs-intel19.0.2
+      - c-netcdf:
+        Name: NETCDF
+        Value: /glade/work/duda/libs-intel19.0.2
+      - pio:
+        Name: PIO
+        Value: /glade/work/duda/libs-intel19.0.2
+      - external_libs:
+        Name: MPAS_EXTERNAL_LIBS
+        Ealue: "-L${NETCDF}/lib -lhdf5_hl -lhdf5 -ldl -lz"
+      - external_includes:
+        Name: MPAS_EXTERNAL_INCLUDES
+        Value: "-I${NETCDF}/include"
+      - JASPERLIB:
+        Name: JASPERLIB
+        Value: "/glade/u/home/wrfhelp/UNGRIB_LIBRARIES/lib"
+      - JASPERINC:
+        Name: JASPERINC
+        Value: /glade/u/home/wrfhelp/UNGRIB_LIBRARIES/include
+      - use_pio2:
+        Name: USE_PIO2
+        Value: 'true'
+      - precision:
+        Name: PRECISION
+        Value: single
+\end{lstlisting}
+
+Modsets can contain three sections: the {\tt Compiler}, {\tt MPI}, and {\tt
+Libs} section.  A modset is required to contain the {\tt Compiler} and {\tt
+Libs} sections, but the {\tt MPI} section is optional.
+
+\subsection{Compilers}
+\label{subsec:modset_compilers}
+
+The compiler section of a modset describes information needed to load a
+specific compiler. It includes the compilers: name (\name), version (\version),
+a list of compiler executables (\executables) and either the module name
+(\module), or the path to the compilers installation directory (\pathname).
+
+While the \name keyword is required in the Compiler section, it is not actively 
+used by SMARTS, but provides readability for users and for tests.
+
+The \version keyword serves two purposes. 
+
+First, if \version is specified with the \module keyword, the name specified
+with the \module and the version number are appended together to load a
+specific version of the compiler. This is equivalent to running {\tt module
+load gnu/8.3.0} or {\tt module load gnu/9.1.0}.
+
+Second, the \version keyword is used in conjunction with executables found
+under the \executables keyword to confirm the correct compiler has been loaded.
+See Chapter \ref{chap:environment_class} for more information on how the
+executables section is used when loading a modset.
+
+In the {\tt Intel-19.0.2} modset from Listing \ref{lst:intel_modset_example},
+the compiler is specified with the name intel (denoted by the \module keyword),
+and, when loaded, will be loaded by using the lmod module Python command to
+load intel/19.0.2. This occurs in the same way one would load the {\tt
+intel/19.0.2} using the module command via the command line: {\tt module load
+intel/19.0.2}. Lastly, when loaded, SMARTs will test to see if the correct
+version of {\tt ifort} and {\tt icc}, which are listed in the executables, have
+been loaded correctly.
+
+There must only be one compiler section per modset.
+
+\subsection{MPI}
+\label{subsec:modset_mpi}
+
+The \mpi section specifies an MPI installation and is specified in the same
+manner as the compiler section. Upon being loaded, the executables listed in
+\executables will be tested against the version listed in the \version keyword.
+
+The \mpi section is not required to be present in a modset.
+
+\subsection{Libs}
+\label{subsec:modset_libs}
+
+The \libs section can contain information on the installation of libraries and
+environment variables. The implementation of the \libs is meant to be flexible
+and allow tests to access libraries and needed environment variables.
+
+Individual entries to the \libs section can specified as either a module
+(Listing \ref{lst:example_library_module}) or an environment variable (Listing
+\ref{lst:example_library_env_var}). Libraries can either be specified as with
+the \module and optional \version keywords as seen in Listing
+\ref{lst:example_library_module} or as a environment variable using the \name
+and \valueenv keywords as seen in Listing \ref{lst:example_library_env_var}.
+
+\begin{lstlisting}[language=yaml, 
+                   caption={Example Library Module},
+                   label={lst:example_library_module}]
+- netcdf:
+  Module: netcdf
+  Version: 3.6.3
+\end{lstlisting}
+
+\begin{lstlisting}[language=yaml, 
+                   caption={Example Library Environment Variable},
+                   label={lst:example_library_env_var}]
+- netcdf:
+  Name: NETCDF
+  Value: /glade/work/duda/libs-intel19.0.2
+\end{lstlisting}
+
+The \libs section is required.

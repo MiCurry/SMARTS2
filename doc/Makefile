@@ -1,5 +1,6 @@
 doc:
-	pdflatex smarts.tex
+	pdflatex -shell-escape smarts.tex
+	pdflatex -shell-escape smarts.tex
 
 clean:
-	$(RM) smarts.aux smarts.log
+	$(RM) -f *.aux *.log *.toc *.out *.pdf

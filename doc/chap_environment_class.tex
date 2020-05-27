@@ -1,0 +1,149 @@
+\chapter{The Environment Class}
+\label{chap:environment_class}
+
+The Environment Class (smarts/env.py) is the interface that tests will use to
+load compilers, MPI installations and libraries that are specified in a
+Environment.yaml file. 
+
+Internally, the Environment Class loads and stores the Environment.yaml file
+that was passed to SMARTS on launch. However, the Environment Class contains
+public function which can be used to find and load modsets.
+
+Each \testRun method of a test will be passed an instance of the Environment
+class that has been loaded with the Environment.yaml that was specified by the
+{\tt smarts.py} command line. Each test can use this instance of the
+Environment to load modsets as they choose.
+
+The Environment class contains two public routines which tests can use to load
+modsets: \listModsets and \loadModset, which are described in the two sections
+below.
+
+\section{List Modsets}
+\label{sec:list-modsets}
+
+\begin{lstlisting}[language=Python, 
+                   caption={list\_modset Definition},
+                   label={lst:list_modset_def}]
+def list_modsets(self, name=None, *args, **kwargs):
+    """ Return a list of modsets found in the parsed environment.yaml file, if
+    name is specified then modset names that contain that name will be
+    returned.
+
+    Keyword arguments:
+    name -- Name to specify specific modset(s) name (String)
+    """
+\end{lstlisting}
+
+The \listModsets command can be used retrieve the names of available modsets.
+These names can be used later by the \loadModset command to load specific
+modsets. As seen in Listing \ref{lst:list_modset_def}, if \listModsets is ran
+and {\tt name=None} then all the Modsets contained will be returned; however,
+if {\tt name} is set, the Modsets that contain the name specified in name will
+be retrieved.
+
+For instance, if SMARTS was initiated with a Environment.yaml file that
+contained the modsets:
+{\tt
+\begin{itemize}
+\item GNU-9.1.0
+\item GNU-8.3.0
+\item INTEL-19.0.2
+\end{itemize}
+}
+
+The following calls to {\tt Environment.list\_modset} would return the
+following:
+
+{\tt
+\begin{itemize}
+\item env.list\_modset() - ['GNU-9.1.0', 'GNU-8.3.0', 'INTEL-19.0.2']
+\item env.list\_modset(name='GNU-9') - ['GNU-9.1.0']
+\item env.list\_modset(name='GNU') - ['GNU-9.1.0', 'GNU-8.3.0']
+\end{itemize}
+}
+
+
+\section{Load Modsets}
+\label{sec:load-modsets}
+
+\begin{lstlisting}[language=Python, 
+                   caption={load\_modset Definition},
+                   label=load_modset_def]
+def load_modset(self, modsetName, *args, **kawrgs):
+    """ Completely load the modset, modsetName to be used by a single test.
+    This function completely loads a modset (compiler, mpi implementation, and
+    all libraries).
+
+    To load a compiler, this function will alter the PATH environment variable
+    for the current process (single test) and prepend the compiler path to it.
+    If the compiler is specified as a module, it will be loaded via the
+    lmod Python interface (`module python load ...`)
+
+    MPI implementation will be loaded in a similar manner to compilers.
+
+    Both MPI and Compilers will be checked to ensure that the correct version
+    is installed by running the compiler executables specified in the
+    executables section of the compiler or MPI env.yaml sections with
+    `--version` and checking the versions in the env.yaml file match correctly.
+
+    Libraries will be loaded by creating ENV_NAME as an environment variable
+    and assigning to it the value specified in value.
+
+    modsetName -- Name of the modset to be loaded (String)
+\end{lstlisting}
+
+From a modset name can be used in the \loadModset command to load a specific
+compiler i.e.:
+
+\begin{lstlisting}[language=Python]
+gnu_modsets = env.list_modsets(name="GNU-9.1.0")
+env.load_modset(gnu_modsets[0])
+\end{lstlisting}
+
+When \loadModset is called with a valid modset, it will load the \compiler,
+\mpi and \libs section in the following order and in the following way:
+
+\begin{enumerate}
+\item \textbf{Compiler}
+
+Depending on how the compiler is specified, the compiler will either be loaded
+using the lmod command or by using environment variables.
+\begin{itemize}
+    \item \textbf{Module} - If the compiler is specified with the \module
+    keyword in the Environment.yaml file then it will be loaded using the lmod
+    {\tt module load} command. Doing so will alter the environment of the test
+    in the same way that using the {\tt module load compiler} would alter an
+    environment.
+    \item \textbf{Environment Variable} - If the path of the compiler is
+    specified as an environment variable, then SMARTS will prepend the
+    compiler's {\tt bin} directory to the \pathenv environment variable. Which
+    enables a Python's subprocess or multiprocess command to launch that
+    compiler.
+\end{itemize}
+
+In both cases, SMARTS will check to see if the correct compiler version
+has been loaded. This is done by running all of the executables listed in the
+\executables section with {\tt --version} and checking to see if the version
+specified in \version is in the output.
+
+\item \textbf{MPI}
+
+If specified, the MPI section will be loaded in the same way as the compiler
+section above and will be tested to ensure they are loaded correctly.
+
+\item \textbf{Libs}
+
+Libraries will be loaded in the order that they are listed. Depending on how
+the library is specified, as either a module (\module) or as an environment
+variable value pair (\name, \value) the library will be loaded using the lmod
+command or by creating an environment variable and setting it equal to value
+listed under value.
+
+For environment variable value pairs, SMARTS will create new environment
+variables with \name (or overwrite one if the name is already present) and set
+it to \value.
+
+As opposed to how the \compiler and \mpi sections are loaded, libraries are not
+tested that they are loaded correctly.
+
+\end{enumerate}
