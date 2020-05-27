@@ -3,4 +3,4 @@ doc:
 	pdflatex -shell-escape smarts.tex
 
 clean:
-	$(RM) -f *.aux *.log *.toc *.out *.pdf
+	$(RM) -f *.aux *.log *.toc *.out
