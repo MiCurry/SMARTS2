@@ -2,11 +2,11 @@ import os
 
 class example_test:
         test_name = "Example Test"
-        test_description = "Create a Hello World C and Fortran program and try to compile it"
+        test_description = "Create a Hello World program in C and Fortran and try to compile it"
         nCPUs = 1
         test_dependencies = None
 
-        """ This test will load a GNU-9 modset, create a Hello World C and Fortram program and
+        """ This test will load a GNU modset, create a Hello World C and Fortram program and
         compile it with the GNU compile we loaded """
 
         def run(self, env, result, srcDir, testDir, hpc=None):
@@ -15,10 +15,10 @@ class example_test:
                 c_prog = '#include <stdio.h>\nint main(void){ printf("Hello World!\\n"); return 0;}'
                 f_prog = 'program HelloWorld\nimplicit none\nwrite(6,*)"Hello World!"\nend program'
 
-                gnu9 = env.list_modsets(name="GNU-9")
-                if len(gnu9) == 0:
+                gnu = env.list_modsets(name="GNU")
+                if len(gnu) == 0:
                         result.result = "FAILED"
-                        result.msg = "Could not load a GNU-9 Modset"
+                        result.msg = "Could not load a GNU Modset"
                         return -1
 
                 c_file = open('HelloWorld.c', mode='w')
