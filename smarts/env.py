@@ -248,7 +248,6 @@ class Environment:
         module_str = str(module) + '/' + str(version)
         lmod_load_cmd += module_str
 
-        print("DEBUG: Going to run the following lmod command: ", lmod_load_cmd)
         module_load = subprocess.Popen(lmod_load_cmd,
                                        shell=True, # TODO: Exploration around shell=True
                                        stdout=subprocess.PIPE,
@@ -322,8 +321,6 @@ class Environment:
                 print(stdout)
                 print(stderr)
                 return False
-
-        # print("DEBUG: Succesfully Loaded compiler: ", name, "/", version, " succesfully!", sep='')
 
         return True
 
@@ -401,9 +398,7 @@ class Environment:
                 env_name = library['Name']
                 value = library['Value']
 
-                print("SMARTS: Setting the env variable:", env_name, "to value:", value)
                 os.environ[env_name] = value
-                print("SMARTS: Environment variable is: ", os.environ[env_name])
             else:
                 print("ERROR: For the library", library['Name'], "does not have a maching value name")
                 return False
@@ -435,10 +430,6 @@ class Environment:
         modset = self.env['Modsets'][modsetName]
         compiler = modset['Compiler']
 
-        # print("DEBUG: Requested modset is: ", modset)
-        # print("DEBUG: Compiler is: ", compiler)
-        # print("DEBUG: Compiler name: ", compiler['name'])
-
         if not self._load_compiler(compiler):
             return False
 
@@ -449,7 +440,5 @@ class Environment:
         for library in modset['Libs']:
             if not self._load_library(library):
                 return False
-
-        print("SMARTS: Loaded modset: '", modsetName, "' succsfully!", sep='')
 
         return True

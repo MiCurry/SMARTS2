@@ -283,7 +283,7 @@ class TestManager:
                 if test_name in t.test.dependencies or test_launch_name in t.test.dependencies:
                     # If test has failed, mark its dependents as UNSCHEDULED and then update those
                     # the dependents of those tests.
-                    print("SMARTS:", t.test_launch_name, " has been unscheduled because one of its dependency failed")
+                    print("SMARTS:", t.test_launch_name, "has been unscheduled because one of its dependency failed")
                     t.status = UNSCHEDULED
                     t.result.result = "INCOMPLETE"
                     self._update_dependents(t, loaded_tests)
@@ -423,9 +423,9 @@ class TestManager:
                     # Check dependencies
                     if all(self._get_depends_status(test, loaded_tests)):
                         avaliable_cpus -= test.test.nCPUs
+                        print("SMARTS: Launching:", test.test.test_name)
                         test.start() # TODO: Try Accept here ??
                         test.status = RUNNING
-                        print("SMARTS: ", test.test.test_name, "has started!\n")
 
 
             """ Join tests """
@@ -435,7 +435,7 @@ class TestManager:
                         test.join(.01)
                         test.status = JOINED
                         avaliable_cpus += test.test.nCPUs
-                        print("SMARTS: ", test.test.test_name, " finished - It: ", test.result.result)
+                        print("SMARTS: Joining with:", test.test.test_name, "Result:", test.result.result)
 
                         if test.result.result is None:
                             test.result.result = ERROR
@@ -452,7 +452,7 @@ class TestManager:
             if any(running) or any(scheduled):
                 continue
             else:
-                print("DEBUG: All tests are completed - Exiting the scheduler!")
+                print("SMARTS: All tests are completed - Exiting the scheduler!")
                 run = False
 
         # Report Results here
