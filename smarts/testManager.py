@@ -197,8 +197,8 @@ class TestManager:
                         description = getattr(testMod, 'test_description')
                     else:
                         description = None
-                    if hasattr(testMod, 'nCPUs'):
-                        ncpus = getattr(testMod, 'nCPUs')
+                    if hasattr(testMod, 'ncpus'):
+                        ncpus = getattr(testMod, 'ncpus')
                     else:
                         ncpus = None
                     if hasattr(testMod, 'dependencies'):
@@ -375,10 +375,10 @@ class TestManager:
                             tests.append(dependent)
 
             # Check to see if this test does not require more resources then whats available
-            if test.test.nCPUs > avaliable_cpus:
+            if test.test.ncpus > avaliable_cpus:
                 print("ERROR: The test '", test.test.test_name, " requires more cpus the available!", sep='')
                 print("ERROR: The machine: '", self.env.name, "' has ", avaliable_cpus, " cpus available", sep='')
-                print("ERROR: And '", test.test.test_name, "' requested: ", test.test.nCPUs, sep='')
+                print("ERROR: And '", test.test.test_name, "' requested: ", test.test.ncpus, sep='')
                 sys.exit(-1)
 
             # If tests pass all the checks above, then set its status to SCHEDULED
@@ -387,10 +387,10 @@ class TestManager:
 
         """ Check to see if this test does not require more resources then whats available """
         for test in loaded_tests:
-            if test.test.nCPUs > avaliable_cpus:
+            if test.test.ncpus > avaliable_cpus:
                 print("ERROR: The test '", test.test.test_name, " requires more cpus the available!", sep='')
                 print("ERROR: The machine: '", self.env.name, "' has ", avaliable_cpus, " cpus available", sep='')
-                print("ERROR: And '", test.test.test_name, "' requested: ", test.test.nCPUs, sep='')
+                print("ERROR: And '", test.test.test_name, "' requested: ", test.test.ncpus, sep='')
                 sys.exit(-1)
 
 
@@ -419,10 +419,10 @@ class TestManager:
             then start it """
             for test in loaded_tests:
                 # If we have enought resources
-                if (test.test.nCPUs <= avaliable_cpus and test.isScheduled()): 
+                if (test.test.ncpus <= avaliable_cpus and test.isScheduled()):
                     # Check dependencies
                     if all(self._get_depends_status(test, loaded_tests)):
-                        avaliable_cpus -= test.test.nCPUs
+                        avaliable_cpus -= test.test.ncpus
                         print("SMARTS: Launching:", test.test.test_name)
                         test.start() # TODO: Try Accept here ??
                         test.status = RUNNING
@@ -434,7 +434,7 @@ class TestManager:
                     if test.isFinished():
                         test.join(.01)
                         test.status = JOINED
-                        avaliable_cpus += test.test.nCPUs
+                        avaliable_cpus += test.test.ncpus
                         print("SMARTS: Joining with:", test.test.test_name, "Result:", test.result.result)
 
                         if test.result.result is None:

@@ -5,7 +5,7 @@ class mpas_atm_intel_compile:
     test_name = "MPAS Atmosphere Intel Compile"
     test_description = "Compile MPAS Atmosphere with Intel (If possible)"
     dependencies = ['intel_check', 'mpas_intel_libs_check']
-    nCPUs = 4
+    ncpus = 4
 
     def run(self, env, result, src_dir, test_dir, hpc=None, *args, **kwargs):
         

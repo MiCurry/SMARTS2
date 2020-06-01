@@ -4,7 +4,7 @@ class gnu_check:
     test_name = "GNU Compiler Check"
     test_description = "Check to see if there is a GNU compiler is on the machine and able to be" \
                        " found by SMARTs"
-    nCPUs = 1
+    ncpus = 1
 
     def run(self, env, result, src_dir, test_dir, hpc=None, *args, **kwargs):
         # Load GNU Compilers

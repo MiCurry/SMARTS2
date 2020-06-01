@@ -5,7 +5,7 @@ class mpas_atm_gnu_compile:
     test_name = "MPAS Atmosphere GNU Compile"
     test_description = "Compile MPAS Atmosphere with GNU (If possible)"
     dependencies = ['gnu_check', 'mpas_gnu_libs_check']
-    nCPUs = 4
+    ncpus = 4
 
     def run(self, env, result, src_dir, test_dir, hpc=None, *args, **kwargs):
         

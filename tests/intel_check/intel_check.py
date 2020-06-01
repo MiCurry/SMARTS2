@@ -5,7 +5,7 @@ class intel_check:
     test_name = "Intel Compiler Check"
     test_description = "Check to see if there is a Intel compiler is on the machine and able to be" \
                        " found by SMARTs"
-    nCPUs = 1
+    ncpus = 1
 
     def run(self, env, result, src_dir, test_dir, hpc, *args, **kwargs):
         # Load INTEL Compilers

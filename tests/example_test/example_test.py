@@ -3,7 +3,7 @@ import os
 class example_test:
         test_name = "Example Test"
         test_description = "Create a Hello World program in C and Fortran and try to compile it"
-        nCPUs = 1
+        ncpus = 1
         test_dependencies = None
 
         """ This test will load a GNU modset, create a Hello World C and Fortram program and

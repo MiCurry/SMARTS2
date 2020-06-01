@@ -5,7 +5,7 @@ import subprocess
 class smiol_intel:
     test_name = "SMIOL Intel Test"
     test_description = "Compiler and run SMIOL with Intel"
-    nCPUs = 1
+    ncpus = 1
 
     def run(self, env, result, src_dir, test_dir, hpc=None, *args, **kwargs):
 

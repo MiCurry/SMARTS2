@@ -6,7 +6,7 @@ class mpas_intel_libs_check:
     test_description = "Check to see if we can access/user the MPAS IO libs by compiling simple"\
                        "programs with Intel"
     dependencies = ['intel_check']
-    nCPUs = 1
+    ncpus = 1
 
     def run(self, env, result, srcDir, testDir, hpc=None, *args, **kwargs):
 

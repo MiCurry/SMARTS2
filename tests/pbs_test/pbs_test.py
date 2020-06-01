@@ -4,7 +4,7 @@ import shutil
 class pbs_test:
         test_name = "Test HPC.launch_job - PBS"
         test_description = "Launch a PBS job via HPC.launch_job"
-        nCPUs = 1
+        ncpus = 1
         test_dependencies = None
 
         def run(self, env, result, srcDir, testDir, hpc):

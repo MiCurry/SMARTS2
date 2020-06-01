@@ -5,7 +5,7 @@ import subprocess
 class smiol_pgi:
     test_name = "SMIOL PGI Test"
     test_description = "See if SMIOL runs successfully with PGI"
-    nCPUs = 1
+    ncpus = 1
 
     def run(self, env, result, src_dir, test_dir, hpc=None, *args, **kwargs):
 
