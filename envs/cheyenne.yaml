@@ -44,6 +44,27 @@ Modsets:
       - pio:
         Name: PIO
         Value: /glade/work/duda/libs-intel19.0.2
+      - PNETCDF_INCLUDES:
+        Name: PNETCDF_INCLUDES
+        Value: "-I$PNETCDF/include"
+      - PNETCDF_LIBS:
+        Name: PNETCDF_LIBS
+        Value: "-L$PNETCDF/lib -lpnetcdf"
+      - NETCDF_INCLUDES:
+        Name: NETCDF_INCLUDES
+        Value: "-I$NETCDF/include"
+      - NETCDF_LIBS:
+        Name: NETCDF_LIBS
+        Value: "-L$NETCDF/lib -lnetcdf -lpnetcdf
+                -lhdf5_hl -lhdf5 -ldl -lz -lm"
+      - PIO_INCLUDES:
+        Name: PIO_INCLUDES
+        Value: "-I$PNETCDF/include -I$PIO/include"
+      - PIO_LIBS:
+        Name: PIO_LIBS
+        Value: "-L$NETCDF/lib
+                -L$PIO/lib -lpiof -lpio
+                -lnetcdf -lpnetcdf -lhdf5_hl -lz -lm"
       - external_libs:
         Name: MPAS_EXTERNAL_LIBS
         Value: "-L${NETCDF}/lib -lhdf5_hl -lhdf5 -ldl -lz"
@@ -91,6 +112,26 @@ Modsets:
         Module: netcdf-mpi
       - pio:
         Module: pio
+      - pnetcdf_includes:
+        Name: PNETCDF_INCLUDES
+        Value: "-I$PNETCDF/include"
+      - pnetcdf_libs:
+        Name: PNETCDF_LIBS
+        Value: "-L$PNETCDF/lib -lpnetcdf"
+      - NETCDF_INCLUDES:
+        Name: NETCDF_INCLUDES
+        Value: "-I$NETCDF/include"
+      - NETCDF_LIBS:
+        Name: NETCDF_LIBS
+        Value: "-L$NETCDF/lib -lnetcdf -lpnetcdf"
+      - PIO_INCLUDES:
+        Name: PIO_INCLUDES
+        Value: "-I$PNETCDF/include -I$PIO/include"
+      - PIO_LIBS:
+        Name: PIO_LIBS
+        Value: "-L$NETCDF/lib
+                -L$PIO/lib -lpiof -lpioc -lgptl
+                -lnetcdf -lpnetcdf"
       - USE_PIO2:
         Name: USE_PIO2
         Value: 'true'
