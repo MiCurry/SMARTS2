@@ -43,7 +43,7 @@ class mpas_atm_gnu_compile:
             result.msg = "Could not clean MPAS atmosphere core"
             return
 
-        print("MPAS_INTEL_COMPILE: Compiling MPAS Atmosphere CORE ....")
+        print("MPAS_GNU_COMPILE: Compiling MPAS Atmosphere CORE ....")
         ierr = os.system('make -j4 gfortran CORE=atmosphere &> ../atmosphere-compile.log')
         if ierr != 0:
             result.result = "FAILED"
