@@ -56,24 +56,24 @@ Modsets:
         Value: "true"
       - PNETCDF_INCLUDES:
         Name: PNETCDF_INCLUDES
-        Value: "-I/users/mcurry/build-gnu-9.1.0/lib/include"
+        Value: "-I$PNETCDF/include"
       - PNETCDF_LIBS:
         Name: PNETCDF_LIBS
-        Value: "-L/users/mcurry/build-gnu-9.1.0/lib/lib -lpnetcdf"
+        Value: "-L$PNETCDF/lib -lpnetcdf"
       - NETCDF_INCLUDES:
         Name: NETCDF_INCLUDES
-        Value: "-I/users/mcurry/build-gnu-9.1.0/lib/include"
+        Value: "-I$NETCDF/include"
       - NETCDF_LIBS:
         Name: NETCDF_LIBS
-        Value: "-L/users/mcurry/build-gnu-9.1.0/lib/lib -lnetcdf -lpnetcdf
+        Value: "-L$NETCDF/lib -lnetcdf -lpnetcdf
                 -lhdf5_hl -lhdf5 -ldl -lz -lm"
       - PIO_INCLUDES:
         Name: PIO_INCLUDES
-        Value: "-I/users/mcurry/build-gnu-9.1.0/lib/include -I/users/mcurry/build-gnu-9.1.0/pio/2.4.3/include"
+        Value: "-I$PNETCDF/include -I$PIO/include"
       - PIO_LIBS:
         Name: PIO_LIBS
-        Value: "-L/users/mcurry/build-gnu-9.1.0/pio/2.3.4/lib
-                -L/users/mcurry/build-gnu-9.1.0/pio/2.4.3/lib -lpiof -lpio
+        Value: "-L$NETCDF/lib
+                -L$PIO/lib -lpiof -lpio
                 -lnetcdf -lpnetcdf -lhdf5_hl -lz -lm"
       - MPAS_EXTERNAL_INCLUDES:
         Name: MPAS_EXTERNAL_INCLUDES
