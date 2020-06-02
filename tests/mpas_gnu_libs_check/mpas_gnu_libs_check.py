@@ -68,9 +68,6 @@ class mpas_gnu_libs_check:
         from subprocess import Popen
 
         ## C
-
-
-        os.system('echo c_pnetcdf $PNETCDF_INCLUDES pnetcdf.c $PNETCDF_LIBS > out')
         if os.system('mpicc -o c_pnetcdf $PNETCDF_INCLUDES pnetcdf.c $PNETCDF_LIBS'):
             print("Failed to compile pnetcdf.c with mpicc")
             result.result = "FAILED"
