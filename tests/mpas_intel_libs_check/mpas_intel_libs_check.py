@@ -66,7 +66,7 @@ class mpas_intel_libs_check:
         # PNetCDF - C and Fortran
 
         ## C
-        if os.system('mpicc -o c_pnetcdf pnetcdf.c -I$PNETCDF/include -L$PNETCDF/lib -lpnetcdf'):
+        if os.system('mpicc -o c_pnetcdf $PNETCDF_INCLUDES pnetcdf.c $PNETCDF_LIBS'):
             print("Failed to compile pnetcdf.c with mpicc")
             result.result = "FAILED"
             result.msg = "Failed to compile a C PNetCDF (pnetcdf.c) with mpicc!"
@@ -75,7 +75,7 @@ class mpas_intel_libs_check:
             print("MPAS_INTEL_LIBS_CHECK: Can compile a C PNetCDF Program!")
 
         ## Fortran
-        if os.system('mpif90 -c pnetcdf.f90 -I$PNETCDF/include -L$PNETCDF/lib -lpnetcdf'):
+        if os.system('mpif90 $PNETCDF_INCLUDES -c pnetcdf.f90 $PNETCDF_LIBS'):
             print("Failed to compile mpi.f90 with mpif90")
             result.result = "FAILED"
             result.msg = "Failed to copmile a Fortran PNetCDF (pnetcdf.f90) with mpif90!"
@@ -86,7 +86,7 @@ class mpas_intel_libs_check:
         # NetCDF - C and Fortran
 
         ## C
-        if os.system('mpicc -o c_netcdf netcdf.c -I$NETCDF/include -I$PNETCDF/include -L$NETCDF/lib -L$PNETCDF/lib -lnetcdf -lpnetcdf -lhdf5_hl -lhdf5 -ldl -lz'):
+        if os.system('mpicc $NETCDF_INCLUDES -o c_netcdf netcdf.c $NETCDF_LIBS'):
             print("Failed to compile netcdf.c with mpicc")
             result.result = "FAILED"
             result.msg = "Failed to compile a C NetCDF program (netcdf.c) with mpicc!"
@@ -95,7 +95,7 @@ class mpas_intel_libs_check:
             print("MPAS_INTEL_LIBS_CHECK: Can compile a C NetCDF Program!")
 
         ## Fortran
-        if os.system('mpif90 -c netcdf.f90 -I$NETCDF/include -I$PNETCDF/include -L$NETCDF/lib -L$PNETCDF/lib -lnetcdf -lpnetcdf -lhdf5_hl -lhdf5 -ldl -lz -lm'):
+        if os.system('mpif90 $NETCDF_INCLUDES -c netcdf.f90 $NETCDF_LIBS'):
             print("Failed to compile netcdf.f90 with mpif90")
             result.result = "FAILED"
             result.msg = "Failed to compile a Fortran NetCDF program (netcdf.f90) with mpif90!"
