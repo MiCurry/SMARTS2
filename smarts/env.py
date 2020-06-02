@@ -402,7 +402,7 @@ class Environment:
                 value = library['Value']
 
                 print("SMARTS: Setting the env variable:", env_name, "to value:", value)
-                os.environ[env_name] = value
+                os.environ[env_name] = os.path.expandvars(value)
                 print("SMARTS: Environment variable is: ", os.environ[env_name])
             else:
                 print("ERROR: For the library", library['Name'], "does not have a maching value name")
