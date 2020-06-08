@@ -6,7 +6,7 @@
 
 Description:
   Name: Reddwarf
-  Max Cores: 10
+  Max Cores: 4
   Modules: True
   LMOD_CMD: /usr/local/lmod/lmod/libexec/lmod
   HPC: False
@@ -54,12 +54,36 @@ Modsets:
       - USE_PIO2:
         Name: USE_PIO2
         Value: "true"
-      - MPAS_EXTERNAL_LIBS:
-        Name: MPAS_EXTERNAL_LIBS
-        Value: "-L${PIO}/lib -L${LIBBASE}/lib/lib -lpio -lpnetcdf -lnetcdf -lhdf5_hl -lhdf5 -ldl -lz"
+      - PNETCDF_INCLUDES:
+        Name: PNETCDF_INCLUDES
+        Value: "-I$PNETCDF/include"
+      - PNETCDF_LIBS:
+        Name: PNETCDF_LIBS
+        Value: "-L$PNETCDF/lib -lpnetcdf"
+      - NETCDF_INCLUDES:
+        Name: NETCDF_INCLUDES
+        Value: "-I$NETCDF/include"
+      - NETCDF_LIBS:
+        Name: NETCDF_LIBS
+        Value: "-L$NETCDF/lib -lnetcdf -lpnetcdf
+                -lhdf5_hl -lhdf5 -ldl -lz -lm"
+      - PIO_INCLUDES:
+        Name: PIO_INCLUDES
+        Value: "-I$PNETCDF/include -I$PIO/include"
+      - PIO_LIBS:
+        Name: PIO_LIBS
+        Value: "-L$NETCDF/lib
+                -L$PIO/lib -lpiof -lpio
+                -lnetcdf -lpnetcdf -lhdf5_hl -lz -lm"
       - MPAS_EXTERNAL_INCLUDES:
         Name: MPAS_EXTERNAL_INCLUDES
-        Value: "-I${LIBBASE}/lib/include -I${PIO}/lib/include"
+        Value: "-I/users/mcurry/build-gnu-9.1.0/lib/include
+                -I/users/mcurry/build-gnu-9.1.0/pio/2.4.3/include"
+      - MPAS_EXTERNAL_LIBS:
+        Name: MPAS_EXTERNAL_LIBS
+        Value: "-L/users/mcurry/build-gnu-9.1.0/lib/lib
+                -L/users/mcurry/build-gnu-9.1.0/pio/2.4.3/include -lpiof -lpio
+                -lpnetcdf -lnetcdf -lhdf5_hl -lhdf5 -ldl -lz -lm"
 
   ############
   # GNU-8.3.0

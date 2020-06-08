@@ -398,7 +398,7 @@ class Environment:
                 env_name = library['Name']
                 value = library['Value']
 
-                os.environ[env_name] = value
+                os.environ[env_name] = os.path.expandvars(value)
             else:
                 print("ERROR: For the library", library['Name'], "does not have a maching value name")
                 return False
