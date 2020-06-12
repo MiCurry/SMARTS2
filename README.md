@@ -19,7 +19,7 @@ SMARTS also has the ability to submit jobs supercomputers (such as the Cheyenne
 super computer) using PBS.
 
 This README only serves as a quickstart guide to using SMARTS. For a more
-in-depth README see the LaTeX documentation in the /doc directory.
+in-depth README see the LaTeX documentation in the `doc/` directory.
 
 # Quickstart Guide
 
@@ -38,7 +38,7 @@ the Environment section of the design document to create one for your
 machine.
 
 2. List and run tests - Next, see if you can run the `smarts.py` command line
-program.
+program by running `python3 smarts.py -h`:
 
 ``` 
 usage: smarts [-h] [-e env.yaml] [-s dir] [-t dir] [-v level] {list,run} ...
@@ -71,8 +71,8 @@ subcommands:
 
 The smarts.py program works in a similar manner as the git command line
 program. It has subcommands. For instance, git has `git remote`, `git remote
-list` and `git add`, `git commit`, etc. smarts.py works in a similar manner,
-but has subcommands `smarts.py list` and `smarts.py run`. Each subcommand
+list` and `git add`, `git commit`, etc. smarts.py works in a similar manner.
+Subcommands for smarts are: `smarts.py list` and `smarts.py run`. Each subcommand
 contains its own help message, which can be retrieved by typing `smarts.py
 subcommand --help`. To bring up the help message above, type `smarts.py -h`.
 
@@ -85,9 +85,9 @@ The smarts.py program needs three required arguments to run:
 While using all of the above required arguments running `python3 smarts.py list
 tests` will display the tests available in the directory passed by `-t`.
 
-3. Create a test of your own
+3. Create a new test
 
-Tests are also implemented in Python as a class and are imported by the
+Tests are implemented in Python as a class and are imported by the SMARTS
 TestRunner.  Individual tests will need to reside in a directory of their own
 inside the main test directory. The name of this directory will need to be the
 same name of the file of the test and will need to be the same name of the
@@ -145,7 +145,7 @@ You can use these arguments to help write your tests.
    an idealized MPAS simulation). This is the directory that was passed in via
    the `-t/--test-dir`.
 5. `hpc`- HPC Class Instance or None - An HPC class that will be an interface
-   to the HPC scheduler (not yet implemented). If HPC == None, then this
+   to the HPC scheduler. If HPC == None, then this
    machine is not an HPC.
 
 # Planned Features
