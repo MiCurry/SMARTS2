@@ -22,6 +22,11 @@ PASSED = "PASSED"
 FAILED = "FAILED"
 INCOMPLETE = "INCOMPLETE"
 
+class Test:
+    """ class Test - A base class for tests """
+    def __init__(self):
+        pass
+
 
 """ Class TestSubProcess - Wrapper for individual test to enable management of multiprocessing """
 class TestSubProcess(Process):
