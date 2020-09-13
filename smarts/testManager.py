@@ -4,6 +4,7 @@ import sys
 import datetime
 from importlib import import_module
 from multiprocessing import Process
+import configparser
 
 from smarts.reporters.reporter import Result
 from smarts import hpc
@@ -21,6 +22,28 @@ ERROR = "ERROR"
 PASSED = "PASSED"
 FAILED = "FAILED"
 INCOMPLETE = "INCOMPLETE"
+
+class Test:
+    def __init__(self, testDir, testName):
+        self.configFiles = []
+        test = os.path.join(testDir, testName)
+
+        """ For files that end with .cfg in the test directory, add them to self.configFiles """
+        for files in os.listdir(test):
+            if files.endswith(".cfg"):
+                self.configFiles.append(os.path.join(testDir, testName, files))
+
+        """ If there are any configFiles, then parse them via self.parse_config"""
+        if self.configFiles:
+            self.parse_config(self.configFiles)
+
+    def parse_config(self, configFiles):
+        """ Using the ConfigParser module, parse all configFiles. All parsed files can be accessed
+        in self.config """
+        self.config = configparser.ConfigParser()
+
+        for files in configFiles:
+            self.config.read(files)
 
 
 """ Class TestSubProcess - Wrapper for individual test to enable management of multiprocessing """
@@ -319,7 +342,14 @@ class TestManager:
         # TODO: Try except here
         module = import_module(test_launch_name+'.'+test_launch_name)
         test = getattr(module, test_launch_name) # Get the test from the module
-        test = test() # Initialize the test
+        try:
+            # Try to load the test, if its derived from the Test class, than we'll need to pass it
+            # the testDir and the test_launch_name, so it can read .cfg files. If this fails, then
+            # the test might not be derived by Test, so launch it normally in the except sections.
+            test = test(self.testDir, test_launch_name)
+        except:
+            test = test()
+
 
         testProcess = TestSubProcess(test_launch_name,
                                      test,
