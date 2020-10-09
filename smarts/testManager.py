@@ -249,9 +249,9 @@ class TestManager:
 
     def _create_run_directory(self):
         """ Create a run directory with the structure: run-smarts.year-mm-dd_hh.mm.ss """
-        run_directory = 'run-smarts-'
+        run_directory = 'run-smarts.'
         now = datetime.datetime.now()
-        run_directory += now.strftime('%Y-%m-%d-%H.%M.%S')
+        run_directory += now.strftime('%Y-%m-%d_%H.%M.%S')
         os.mkdir(run_directory)
         if not os.path.isdir(run_directory):
             print("ERROR: Could not create run_directory: ", run_directory)
