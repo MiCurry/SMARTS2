@@ -3,6 +3,7 @@ import os
 import sys
 import datetime
 from importlib import import_module
+import textwrap
 from multiprocessing import Process
 import configparser
 
@@ -485,19 +486,56 @@ class TestManager:
                 print("SMARTS: All tests are completed - Exiting the scheduler!")
                 run = False
 
-        # Report Results here
+        #
+        # Report results here - write them out to the terminal and create a file in the run
+        # directory to report results.
+        #
+        # For now, this is fine here, but this might be better suited in another function.
+        # That way different methods for reporting could easily be switched out. e.g. Github
+        # reports.
+        #
+
         # Sort tests so they print out in the order they ran
         loaded_tests = sorted(loaded_tests, key=lambda t: int(t.name.split('-')[1]))
 
-        # for test in loaded_tests:
-        #   reporter.add_results(test.result)
-        # 
-        # reporter.generate_report()
-
         print("\n\nTEST RESULTS")
         print("===============================================")
+
+        # Write out results for each test
+        results_f = open('smarts.results.txt', 'w')
+        results_f.write('Results of SMARTS test {0}\n'.format(self.run_directory))
+        results_f.write('\n')
         for test in loaded_tests:
+            results_f.write(''+test.test_launch_name+
+                            ' - '+test.result.result+
+                            ' - "'+test.result.msg+'"\n')
+        results_f.write('\n')
+
+        for test in loaded_tests:
+            #
+            # Write out results to the terminal
+            #
             print(' - ', test.test_launch_name,
                   ' - ', test.result.result,
                   ' - "', test.result.msg, '"', sep='')
+
+            #
+            # Attempt to wrap lines to be ~79 characters
+            #
+            test_launch_name = textwrap.fill(test.test_launch_name, 76)
+            test_name = textwrap.fill(test.test.test_name, 67)
+            test_description = textwrap.fill(test.test.test_description, 66)
+            result_msg = textwrap.fill(test.result.msg, 69)
+            #
+            # Write out results to the result file
+            #
+            results_f.write("========================================================\n")
+            results_f.writelines('Test: {0} - {1}\n'.format(test_name, test_launch_name))
+            results_f.writelines('Description: {0}\n'.format(test_description))
+            results_f.write('Result: {0}\n'.format(test.result.result))
+            results_f.writelines('Message: {0}\n'.format(result_msg))
+            results_f.write('\n')
+
+        results_f.close()
+
         return
