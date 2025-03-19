@@ -3,7 +3,7 @@ import os
 import sys
 import datetime
 from importlib import import_module
-from multiprocessing import Process
+import multiprocessing as mp
 
 from smarts.reporters.reporter import Result
 from smarts import hpc
@@ -24,7 +24,7 @@ INCOMPLETE = "INCOMPLETE"
 
 
 """ Class TestSubProcess - Wrapper for individual test to enable management of multiprocessing """
-class TestSubProcess(Process):
+class TestSubProcess(mp.Process):
     def __init__(self, test_launch_name, test,
                                          result,
                                          env,
@@ -32,7 +32,7 @@ class TestSubProcess(Process):
                                          testDir,
                                          hpc=None,
                                          *args, **kwargs):
-        Process.__init__(self)
+        mp.Process.__init__(self)
         self.test = test
         self.test_launch_name = test_launch_name
         self.srcDir = os.path.abspath(srcDir)
@@ -110,6 +110,8 @@ class TestManager:
         self.invalid_tests = None
         self.launch_names = None
 
+        mp.set_start_method('fork')
+
         # Based on if the env we have is an HPC or not, initalize the HPC
         if env.hpc:
             # Initalize HPC
@@ -125,6 +127,7 @@ class TestManager:
             print("TestRunner: Test directory is: ", self.testDir)
 
         sys.path.insert(0, self.testDir)
+
 
     def list_tests(self, *args, **kwargs):
         """ Return a list of valid and a list of invalid tests found in the testDir. In the valid
