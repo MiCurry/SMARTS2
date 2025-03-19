@@ -23,6 +23,9 @@ def get_executables(path):
 mesh_location = '/Users/mcurry/meshes/'
 real_mesh = 'real.25.6km.rho'
 data_file = 'save.196s.3p.dat'
+control_file = 'forward.qmr.ctrl'
+fwd_dat_save_fname = 'fwd.dat'
+esol_fname = 'fwd.esol'
 
 class forward_mf:
     test_name = "Forward Matrix-Free ModEM Test"
@@ -48,11 +51,17 @@ class forward_mf:
             os.chdir(forward_dir)
 
             shutil.copy2(os.path.join(src_dir, 'f90', exe), os.getcwd())
+            shutil.copy(os.path.join(test_dir, self.__class__.__name__, control_file), os.getcwd())
             shutil.copy(os.path.join(mesh_location, real_mesh), os.getcwd())
             shutil.copy(os.path.join(mesh_location, data_file), os.getcwd())
 
 
-            modem_arguments = [f'./{exe}', f'-F', f'{real_mesh}', f'{data_file}', f'fwd.dat']
+
+            modem_arguments = [f'./{exe}', f'-F',
+                                    f'{real_mesh}',
+                                    f'{data_file}',
+                                    f'{fwd_dat_save_fname}',
+                                    f'{esol_fname}', f'{control_file}']
 
             if 'release' in exe:
                 exe_launch = modem_arguments
