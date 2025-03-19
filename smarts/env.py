@@ -271,7 +271,7 @@ class Environment:
         return True
 
 
-    def _load_compiler(self, compiler, *args, **kwargs):
+    def _load_compiler(self, compiler, check_version=True, *args, **kwargs):
         """ Load a compiler by altering this process PATH environment. This module
         checks to see if the compiler was loaded successful by running `--version` and
         checking the version number of the compiler
@@ -308,19 +308,20 @@ class Environment:
             sys.exit(-1)
 
         # Test the compiler to see if we have the right version loaded
-        for cmd in cmds:
-            check = subprocess.Popen(cmd+' --version', shell=True,
-                                                       stdout=subprocess.PIPE,
-                                                       stderr=subprocess.PIPE)
-            stdout = str(check.stdout.read(), encoding='utf-8')
-            stderr = str(check.stderr.read(), encoding='utf-8')
+        if check_version:
+            for cmd in cmds:
+                check = subprocess.Popen(cmd+' --version', shell=True,
+                                                           stdout=subprocess.PIPE,
+                                                           stderr=subprocess.PIPE)
+                stdout = str(check.stdout.read(), encoding='utf-8')
+                stderr = str(check.stderr.read(), encoding='utf-8')
 
-            if str(version) not in stdout:
-                print(version, " was not succesfully loaded for the command ", cmd)
-                print("Instead got: ")
-                print(stdout)
-                print(stderr)
-                return False
+                if str(version) not in stdout:
+                    print(version, " was not succesfully loaded for the command ", cmd)
+                    print("Instead got: ")
+                    print(stdout)
+                    print(stderr)
+                    return False
 
         return True
 
@@ -405,7 +406,7 @@ class Environment:
 
         return True
 
-    def load_modset(self, modsetName, *args, **kawrgs):
+    def load_modset(self, modsetName, *args, **kwargs):
         """ Completely load the modset, modsetName to be used by a single test. This function
         completely loads a modset (compiler, mpi implementation, and all libraries).
 
@@ -429,8 +430,9 @@ class Environment:
         # Load a modset
         modset = self.env['Modsets'][modsetName]
         compiler = modset['Compiler']
+        check_version = kwargs.get('check_version', False)
 
-        if not self._load_compiler(compiler):
+        if not self._load_compiler(compiler, check_version=check_version):
             return False
 
         if "MPI" in modset.keys():
