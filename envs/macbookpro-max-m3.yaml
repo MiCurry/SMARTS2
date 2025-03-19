@@ -1,0 +1,58 @@
+---
+
+################################
+# MacBook Pro - Apple M3 MAX - 12 performance and 4 efficiency cores
+################################
+
+
+Description:
+  Name: macbook_pro_max
+  Max Cores: 12
+  Modules: False
+  HPC: False
+
+Modsets:
+  ############
+  # GNU Compiled MPICH
+  ############
+  GNU-MPICH:
+    name: GNU-MPICH 
+    Compiler:
+      Name: gnu
+      Version: 14.2.0
+      Path: /Users/mcurry/Programs/installs/mpich
+      Executables:
+        - gcc
+        - gfortran
+        - g++
+      MPI-PATH: /Users/mcurry/Programs/installs/mpich
+      mpi-executables:
+        - mpicc
+        - mpifort
+        - mpic++
+    Libs:
+      - f-netcdf:
+        Name: NETCDFF
+        Value: /Users/duda/local/gnu/9.2.0/lib
+  GNU-OPENMPI:
+    Name: GNU-OPENMPI
+    Compiler:
+      Name: gnu
+      Version: 14.2.0
+      Path: /Users/mcurry/Programs/installs/openmpi
+      Executables:
+        - gcc
+        - gfortran
+        - g++
+      MPI-PATH: /Users/mcurry/Programs/installs/openmpi
+      mpi-executables:
+        - mpicc
+        - mpifort
+        - mpic++
+    Libs:
+      - f-netcdf:
+        Name: NETCDFF
+        Value: /Users/duda/local/gnu/9.2.0/lib
+
+
+
