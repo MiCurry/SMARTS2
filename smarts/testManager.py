@@ -48,6 +48,9 @@ class TestSubProcess(mp.Process):
         result.start()
         self.result = result.result()
 
+    def start(self):
+        super().start()
+
     def run(self):
         if self.DEBUG > 1:
             print("DEBUG: Creating directory for:", self.test_launch_name)
@@ -127,7 +130,6 @@ class TestManager:
             print("TestRunner: Test directory is: ", self.testDir)
 
         sys.path.insert(0, self.testDir)
-
 
     def list_tests(self, *args, **kwargs):
         """ Return a list of valid and a list of invalid tests found in the testDir. In the valid
@@ -319,10 +321,9 @@ class TestManager:
     def load_test(self, test_launch_name):
         """ Import test_launch_name. This function will import a test, and will wrap it in a
         TestSubProccess, which will then be returned. """
-        # TODO: Try except here
-        module = import_module(test_launch_name+'.'+test_launch_name)
-        test = getattr(module, test_launch_name) # Get the test from the module
-        test = test() # Initialize the test
+        module = import_module(test_launch_name + '.' + test_launch_name)
+        test = getattr(module, test_launch_name)
+        test = test()
 
         testProcess = TestSubProcess(test_launch_name,
                                      test,
@@ -426,7 +427,7 @@ class TestManager:
                     # Check dependencies
                     if all(self._get_depends_status(test, loaded_tests)):
                         avaliable_cpus -= test.test.ncpus
-                        print("SMARTS: Launching:", test.test.test_name)
+                        print("SMARTS: Launching:", test.test.test_name, '\n')
                         test.start() # TODO: Try Accept here ??
                         test.status = RUNNING
 
@@ -438,7 +439,7 @@ class TestManager:
                         test.join(.01)
                         test.status = JOINED
                         avaliable_cpus += test.test.ncpus
-                        print("SMARTS: Joining with:", test.test.test_name, "Result:", test.result.result)
+                        print("\nSMARTS: Joining with:", test.test.test_name, "Result:", test.result.result, '\n')
 
                         if test.result.result is None:
                             test.result.result = ERROR

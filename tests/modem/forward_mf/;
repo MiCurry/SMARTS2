@@ -1,0 +1,61 @@
+import os
+import shutil
+import subprocess
+
+config_files = {}
+
+def get_executables(path):
+    executables = []
+    for f in os.listdir(path):
+        if 'Mod3DMT' in f and '.f90' not in f and 'SP' not in f:
+            executables.append(f)
+
+    return executables
+    
+
+mesh_location = '/Users/mcurry/meshes/'
+real_mesh = 'real.25.6km.rho'
+data_file = 'save.196s.3p.dat'
+
+class forward_mf:
+    test_name = "Forward Matrix-Free ModEM Test"
+    test_description = "Test forward for all compiled versions of 3D Matrix Free"
+    dependencies = None
+    ncpus = 4
+
+    def run(self, env, result, src_dir, test_dir, hpc=None, *args, **kwargs):
+        gnu_modsets = env.list_modsets(name="GNU")
+        if not gnu_modsets:
+            result.result = "FAILED"
+            result.msg = "This env file had no modests with the name 'GNU'"
+            return result.result
+
+        print("Number of gnu_modsets: ", gnu_modsets)
+
+        executables = get_executables(os.path.join(src_dir, 'f90'))
+
+        for exe in executables:
+            # Create a new directory, and copy the file into it
+            forward_dir = f'forward.{exe}'
+            os.makedirs(forward_dir)
+            os.chdir(forward_dir)
+
+            shutil.copy2(os.path.join(src_dir, 'f90', exe), os.getcwd())
+
+            modem_arguments = [f'./{exe}', f'-F', f'{real_mesh}', f'{data_file}', f'fwd.dat']
+
+            if 'release' in exe:
+                exe_launch = modem_arguments
+            elif 'mpi' in exe:
+                exe_launch = ['mpiexec', '-n', f'{forward_mf.ncpus}'].extend(modem_arguments)
+
+            for modset in gnu_modsets:
+                if modset in exe_launch:
+                    print(f"Loading modset: {modset}")
+                    env.load_modset(modset)
+
+            print("Launch Command: ", exe_launch)
+            print(gnu_modsets)
+
+        result.result = "PASSED"
+        result.msg = "Successfully created configuration files"
