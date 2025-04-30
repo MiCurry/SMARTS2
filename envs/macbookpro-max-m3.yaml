@@ -34,6 +34,9 @@ Modsets:
       - f-netcdf:
         Name: NETCDFF
         Value: /Users/duda/local/gnu/9.2.0/lib
+      - fftw:
+        Name: FFTW
+        Value: /Users/mcurry/Programs/installs/mpich
   GNU-OPENMPI:
     Name: GNU-OPENMPI
     Compiler:
