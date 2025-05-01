@@ -72,20 +72,18 @@ class modem_compile:
 
                 if '3D' in makefile:
                     modem_exe_default = 'Mod3DMT'
-                    executable_name = f'Mod3DMT.{modset}.{makefile}'.replace('.makefile.', '.')
+                    executable_name = f'Mod3DMT.Modset:{modset}.{makefile}'.replace('.makefile.', '.')
                 elif '2D' in makefile:
                     modem_exe_default = 'Mod2DMT'
-                    executable_name = f'Mod2DMT.{modset}.{makefile}'.replace('.makefile.', '.')
+                    executable_name = f'Mod2DMT.Modset:{modset}.{makefile}'.replace('.makefile.', '.')
                 else:
                     modem_exe_default = 'Mod3DMT'
-                    executable_name = f'Mod3DMT.{modset}.{makefile}'.replace('.makefile.', '.')
-
+                    executable_name = f'Mod3DMT.Modset:{modset}.{makefile}'.replace('.makefile.', '.')
 
                 if not os.path.isfile(modem_exe_default):
                     result.result = "FAILED"
                     result.msg = f"Could not find the default executable: {modem_exe_default} for {makefile}"
                     return result.result
-
 
                 shutil.move(modem_exe_default, executable_name)
                 print(f"PASSED - Succesfully compiled {makefile} with {modset} - exe: {executable_name}\n")
