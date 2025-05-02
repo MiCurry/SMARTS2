@@ -1,7 +1,7 @@
 import os
 import shutil
 import subprocess
-
+import itertools
 
 config_files = {}
 
@@ -31,45 +31,53 @@ class make_config_files:
 
         CONFIG_DIR = './CONFIG'
 
-        configurations = [['Configure.2D_MT.OSU.GFortran', 'release'],
-                        ['Configure.3D_MT.MAC.GFortran', 'mpi', 'release'],
-                        ['Configure.SP.MAC.GFortran', 'mpi', 'release'],
-                        ['Configure.SP2.MAC.GFortran', 'mpi'],
-                        ['Configure.3D_MT.HDF5.MAC.GFortran', 'mpi', 'release'],
-                        ['Configure.SP2.HDF5.MAC.GFortran', 'mpi']]
+        compilers = ['gfortran', 'ifort']
+        debug_level = ['Debug', 'Release']
+        nprocs = ['Serial', 'MPI']
+        fwd_solvers = ['MF', 'SP', 'SP2']
 
-        for configuration in configurations:
-            config_name = configuration[0]
-            versions = configuration[1:]
-            config_exe = os.path.join(CONFIG_DIR, config_name)
+        combinations = list(itertools.product(compilers, debug_level, nprocs, fwd_solvers))
 
-            if not os.path.isfile(config_exe):
+        csem_selection = 0
+
+        config_exe = 'configure'
+
+        for combo in combinations:
+            compiler = combo[0]
+            debug_or_release = combo[1]
+            mpi_or_serial = combo[2]
+            forward_type = combo[3]
+
+            makefile_name = f"Makefile.modset:{compiler}.{debug_or_release}.{mpi_or_serial}.{forward_type}"
+
+            config_exe_cmd = [config_exe, 
+                              compiler,
+                              makefile_name, 
+                              debug_or_release, 
+                              mpi_or_serial,
+                              forward_type]
+
+            print("")
+            print(f"Testing configuration creation for {' '.join(config_exe_cmd)}")
+
+            log_fname = f'log.{makefile_name}'
+            log_file=open(log_fname, 'w')
+
+            try:
+                ierr = subprocess.run(config_exe_cmd, check=True, stdout=log_file, stderr=log_file)
+                pass
+            except subprocess.CalledProcessError as e:
                 result.result = "FAILED"
-                result.msg = f"Configuration file {config_exe} did not exist!"
+                result.msg = f"Error when trying to create: {makefile_name}. Log in {os.path.abspath(log_fname)}"
                 return result.result
 
-            for v in versions:
-                makefile_name = config_name.replace('Configure', 'smarts.makefile')+'_'+v
-                print(f'Creating configuration file: {config_exe} naming makefile: {makefile_name} {v}')
-                log_filename = f'../../log.{makefile_name}'
-                config_log = open(log_filename, 'w')
+            if not os.path.isfile(makefile_name):
+                result.result = "FAILED"
+                result.msg = f"Did not make the makefile: '{makefile_name}"
+                return result.result
 
-                print(f'Logging stdout and stderr to: {os.path.abspath(log_filename)}\n')
-                try:
-                    process = subprocess.run([config_exe, makefile_name, v], 
-                                             stdout=config_log,
-                                             stderr=config_log,
-                                             check=True)
-                except subprocess.CalledProcessError as e:
-                    result.result = "FAILED"
-                    result.msg = f"Makefile {makefile_name} was not created for config {config_name} for {v} - see {os.path.abspath(log_filename)}"
-                    return result.result
-
-
-                if not os.path.isfile(makefile_name):
-                    result.result = "FAILED"
-                    result.msg = f"Makefile {makefile_name} was not created for config {config_name} for {v}"
-                    return result.result
-
+            print("PASSED - Able to create configuration file")
+            
         result.result = "PASSED"
-        result.msg = "Successfully created configuration files"
+        result.msg = "Succsfully created all CSEM Makefiles"
+        return result.result

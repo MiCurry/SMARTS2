@@ -2,6 +2,8 @@ import os
 import shutil
 import subprocess
 
+from smarts.utils import utils
+
 config_files = {}
 
 def get_makefiles():
@@ -11,12 +13,22 @@ def get_makefiles():
             makefiles.append(f)
 
     return makefiles
+
+def extract_modset(executable: str) -> str:
+    executable = executable.lower()
+    split = executable.split('.')
+
+    for itm in split:
+        if 'modset' in itm:
+            return itm.split(':')[1]
+
+    return False
     
 
 class modem_compile:
     test_name = "Compile ModEM Test"
     test_description = "Compile all ModEM configurations (Except HDF5)"
-    dependencies = ['make_config_files']
+    dependencies = []
     ncpus = 1
 
     def run(self, env, result, src_dir, test_dir, hpc=None, *args, **kwargs):
@@ -27,24 +39,57 @@ class modem_compile:
             result.msg = "This env file had no modests with the name 'GNU'"
             return result.result
 
-        print("Number of gnu_modsets: ", gnu_modsets)
-
         if not os.path.isdir(os.path.join(src_dir, 'f90')):
             result.result = "FAILED"
             result.msg = f"{src_dir} does not appear to a ModEM source directory"
             return result.result
 
-        # Change directory to copy of ModEM in the test directory
-        os.chdir(os.path.join('../make_config_files/ModEM-Model', 'f90'))
+        # Copy the ModEM source into its own directory in the current run directory
+        modem_src_copy = os.path.join('./', 'ModEM-Model')
+        shutil.copytree(src_dir, modem_src_copy)
+        if not os.path.isdir(modem_src_copy):
+            result.result = "FAILED"
+            result.msg = "ModEM source directory was not copied succesfully!"
+            return result.result
 
-        makefiles = get_makefiles()
+        # Change directory to copy of ModEM in the test directory
+        os.chdir(os.path.join(f'./ModEM-Model', 'f90'))
+        makefiles = utils.all_matches(os.listdir('.'),
+                                     ['Makefile', 'modset'],
+                                     ['.f90', 'log'])
+
+        print(f"Makefiles: ", makefiles)
+
+        if len(makefiles) == 0:
+            result.result = "FAILED"
+            result.msg = "Found no makefile!"
+            return result.result
 
         for makefile in makefiles:
             if 'HDF5' in makefile:
                 print(f"Skipping HDF5 - {makefile}")
                 continue
 
-            for modset in gnu_modsets:
+            modset = extract_modset(makefile)
+
+            print(f"Testing makefile: '{makefile}'...")
+
+            if 'gfortran' in modset:
+                modset_name = 'GNU'
+            elif 'ifort' in modset:
+                modset_name = 'INTEL'
+
+
+            modsets = env.list_modsets(name=modset_name)
+
+            if modsets is None:
+                print(f"Modset '{modset_name}' is not on this enviorment. Skipping this makefile")
+                continue
+
+            print(modsets)
+
+            for modset in modsets:
+                print(f"Loading modset: {modset}")
                 if not env.load_modset(modset):
                     result.result = "FAILED"
                     result.msg = "Could not load gnu modset {modset}"
