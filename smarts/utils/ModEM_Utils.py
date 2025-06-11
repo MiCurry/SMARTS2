@@ -1,7 +1,41 @@
-
-
-
+from dataclasses import dataclass
 from smarts.utils import matlab_utils
+
+import matlab
+
+@dataclass
+class ReadZResult:
+    data : list[dict]
+    header : str
+    units : str
+    isign : float
+    origin : matlab.double
+    size : matlab.double
+    info : list[dict]
+
+
+
+def do_ml_readZ(eng, fname):
+    eng.workspace['fname'] = fname
+    eng.evalc('[data, header, units, isign, origin, info] = readZ_3D(fname)')
+
+    header = eng.workspace['header']
+    units = eng.workspace['units']
+    isign = eng.workspace['isign']
+    origin = eng.workspace['origin']
+    size = eng.eval('size(info{1}.code)')
+    data = convert_ml_data_to_py(eng, 'data')
+    info = convert_ml_info_to_py(eng, 'info')
+
+    return {
+        'data' : data,
+        'header' : header,
+        'units' : units,
+        'isign' : isign,
+        'origin' : origin,
+        'size' : size,
+        'info' : info
+    }
 
 def convert_ml_info_to_py(eng, obj: str) -> list[dict]:
     infos = []
@@ -9,7 +43,7 @@ def convert_ml_info_to_py(eng, obj: str) -> list[dict]:
     x = int(info_size[0])
     y = int(info_size[1])
 
-    print('Info Size:', info_size)
+    print('Info Size:', info_size, obj)
     for i in range(1, y+1):
         access_str = f'{obj}{{{i}}}'
 
@@ -31,9 +65,6 @@ def convert_ml_data_to_py(eng, obj: str) -> list[dict]:
     data_size = eng.eval(f'size({obj})')[0]
     x = int(data_size[0])
     y = int(data_size[1])
-
-    print(data_size, x, y)
-
 
     allData = []
     for i in range(1, y + 1):
@@ -79,4 +110,4 @@ def convert_ml_data_to_py(eng, obj: str) -> list[dict]:
 
 class ModEM_Data:
     def __init__(self, eng):
-        self.eng = eng
+        eng = eng
