@@ -96,6 +96,12 @@ class ReadWriteData:
             return result
 
         print()
+        print("Testing read_vert_n_full_imp...")
+        result = self.test_full_vert_n_full_imp(result)
+        if result.result == "FAILED":
+            return result
+
+        print()
         print("Tesing read_one_data_type for onetype='Full_Impedance'")
         result = self.test_read_one_data_type(result)
         if result.result == "FAILED":
@@ -254,6 +260,143 @@ class ReadWriteData:
 
         result.result = "PASSED"
         result.msg = "Able to read/write full_imp_n_vert_comp.dat"
+        return result
+
+    def test_full_vert_n_full_imp(self, result):
+        result.result = "FAILED"
+        result.msg = f"Could not read full impedance"
+
+        fname= os.path.abspath(os.path.join(self.test_dir, 'ReadWriteData', 'vert_comp_n_full_imp.dat'))
+        print(f"Testing: readZ_3D... on {fname}")
+        self.check_if_file_present(fname, result)
+        if result.result == 'FAILED':
+            return result
+
+        expected_periods = np.array([11.63636, 25.6, 53.89474, 102.4, 215.5789,
+                                     409.6, 862.3158, 1638.4, 4681.143, 18724.57
+                                    ])
+
+        expected_full_imp_comp_chars = ModEMData.DATA_TYPE_COMPONENT_MAP['Full_Impedance']
+        expected_vert_comp_comp_chars = ModEMData.DATA_TYPE_COMPONENT_MAP['Full_Vertical_Components']
+        expected_txtypes = ['Full_Vertical_Components', 'Full_Impedance']
+        ncomps = [8, 4]
+        expected_units='[]'
+        total_comps = ncomps[0] + ncomps[1]
+        expected_comps = [expected_full_imp_comp_chars, expected_vert_comp_comp_chars]
+        expected_data_info = []
+
+        data_sizes=[(109,10,4,), (109,10,2)]
+
+        for info in range(0, 2):
+            expected_data_info.append(
+                ModEM_Utils.ExpectedDataInfo(
+                    data=None,
+                    data_size=data_sizes[info],
+                    err=None,
+                    err_size=data_sizes[info],
+                    lat=None,
+                    lat_size=(1,109),
+                    lon=None,
+                    lon_size=(1,109),
+                    loc=None,
+                    loc_size=(1, 109),
+                    code=None,
+                    code_size=(109,),
+                    per=expected_periods,
+                    ncomp=ncomps[info],
+                    comp=expected_comps[info],
+                    type=[expected_txtypes[info]]
+                )
+            )
+
+        all_comps =[]
+        all_comps.extend(expected_full_imp_comp_chars)
+        all_comps.extend(expected_vert_comp_comp_chars)
+
+        origin = np.array([45.2760, -119.6340, 0])
+        expected_data_data = []
+        for period in expected_periods:
+            expected_data_data.append(ModEM_Utils.ExpectedDataData(
+                T=period,
+                Cmplx=1,
+                units=expected_units,
+
+                signConvention=1,
+                nComp=total_comps,
+
+                siteLoc=None,
+                siteLoc_size=(109, 3),
+
+                siteChar = None,
+                siteChar_size= (109, 1,),
+
+                Z=None,
+                Z_size=(109,),
+
+                Zerr=None,
+                Zerr_size=(109,),
+
+                origin = origin,
+                orient = 0.0,
+
+                lat = None,
+                lat_size = (109,),
+
+                lon = None,
+                lon_size = (109,),
+
+                compChar=np.array(all_comps),
+                type=''
+            ))
+
+        expected_data = ModEM_Utils.ExpectedData(
+            data=expected_data_data,
+            data_size=10,
+            header='',
+            units=expected_units,
+            isign=1,
+            origin=origin,
+            info=expected_data_info,
+            info_size=len(expected_data_info),
+            expected_periods=expected_periods
+        )
+
+
+        read_result = ModEM_Utils.do_ml_readZ(self.eng, fname, units=expected_units)
+        read_result_plain = copy.deepcopy(read_result)
+
+        for r in read_result_plain['data']:
+            r['nanvalue'] = 999999
+
+        self.assert_readZ(result, read_result, expected_data)
+        if result.result == "FAILED":
+            return result
+
+        header = '# Smarts write tests'
+        write_fname = 'test.write.full_vert_n_full_imp.dat'
+
+        self.eng.workspace['fname'] = write_fname
+        self.eng.workspace['header'] = header
+        self.eng.workspace['units'] = expected_units
+        self.eng.workspace['isign'] = 1
+
+        print(f"Testing writeZ_3d with {write_fname}")
+        self.eng.evalc('[status] = writeZ_3D_MC_fixes(fname, data, header, units, 1)')
+        status = self.eng.workspace['status']
+
+        if status != 0:
+            result.result = "FAILED"
+            result.msg = f"Calling writeZ_3D_MC_fixes on {write_fname} returned a non-zero status code from ML: {status}"
+            return result
+
+        print(f"Rereading {write_fname} and checking it against read_result")
+        re_read = ModEM_Utils.read_into_expected_datatypes(self.eng, write_fname)
+        self.assert_readZ(result, read_result_plain, re_read)
+        if result.result == "FAILED":
+            return result
+
+        result.result = "PASSED"
+        result.msg = "Able to read/write full_vert_n_full_vert.dat"
         return result
 
     def test_read_one_data_type(self, result):
@@ -801,8 +944,13 @@ class ReadWriteData:
             for compChar in data['compChar']:
                 if compChar not in expected.data[idx].compChar:
                     result.result = "FAILED"
-                    result.msg = f"Expected 'compChar' for period {period} to be in {expected.data[idx].compChar} instead got {compChar}"
+                    result.msg = f"Expected 'compChar' for compChar {compChar} to be in {expected.data[idx].compChar} instead got {compChar}"
                     return result
+
+            if (data['compChar'] != expected.data[idx].compChar).all():
+                result.result = "FAILED"
+                result.msg = f"Expected 'compChar' for period {period} to be in {expected.data[idx].compChar} instead got {data['compChar']} - Wrong Order!"
+                return result
                 
         #
         # Test info structure
