@@ -141,7 +141,7 @@ def run_cmd(args):
     """ SMARTS Command Line API for handling the run command passed in to
     the argparser. """
     testDir = args.config.test_dir
-    srcDir = args.config.test_dir
+    srcDir = args.config.src_dir
     envFile = args.config.env_file
     tests = list(set(args.items))
 
