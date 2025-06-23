@@ -203,6 +203,6 @@ following order (1 = highest priority).
                         stdout.
 * List Modset - Print detailed information of a single modset
 * List Libraries - Return a list of the libraries for a single modset
-* ~/.smarts.conf - Config file to reduce the number of command line options
-  (e.g. -e and -t)
+* ~~ ~/.smarts.conf - Config file to reduce the number of command line options~~
+  ~~(e.g. -e and -t)~~
 * Standard Library - If desired/wanted?
