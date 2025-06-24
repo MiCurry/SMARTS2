@@ -783,6 +783,123 @@ class ReadWriteData:
         result.msg = f"Could read full_impedance"
         return result
 
+    def test_off_diag_imp(self, result):
+        result.result = "FAILED"
+        result.msg = f"Could not read Off_Diagonal_Impedance"
+
+        off_diag_imp_fname = os.path.abspath(os.path.join(self.test_dir, 'ReadWriteData', 'off_diag_imp.dat'))
+        print(f"Testing: readZ_3D... on {off_diag_imp_fname}")
+        self.check_if_file_present(off_diag_imp_fname, result)
+        if result.result == 'FAILED':
+            return result
+
+        expected_periods = np.array([3.981072, 15.84893, 63.09573, 251.1886, 1000.0, 3981.072])
+
+        nsites = 441
+        nperiods = len(expected_periods)
+        ncomps = 4
+
+        expected_data_info = []
+        for info in range(0, 2):
+            expected_data_info.append(ModEM_Utils.ExpectedDataInfo(
+                data = None,
+                data_size = (nsites, nperiods, ncomps),
+                err = None,
+                err_size = (nsites, nperiods, ncomps),
+                lat=None,
+                lat_size=(1, nsites),
+                lon=None,
+                lon_size=(1, nsites),
+                loc=None,
+                loc_size=(1, nsites),
+                code=None,
+                code_size=(nsites,),
+                per=expected_periods,
+                ncomp=ncomps,
+                comp=['ZXY', 'ZYY'],
+                type='Full_Impedance'
+            ))
+
+        expected_data_data = []
+        for period in expected_periods:
+            expected_data_data.append(ModEM_Utils.ExpectedDataData(
+                T = period,
+                Cmplx = 1,
+                units = 'Ohm',
+
+                signConvention = 1,
+                nComp = ncopms,
+                siteLoc = None,
+                siteLoc_size = (nsites, 3),
+
+                siteChar = None,
+                siteChar_size = (nsites, 7),
+
+                Z = None,
+                Z_size = (nsites,),
+
+                Zerr = None,
+                Zerr_size = (nsites,),
+
+                origin = [0.0, 0.0, 0.0],
+                orient = 0.0,
+
+                lat = None,
+                lat_size = (nsites,),
+
+                lon = None,
+                lon_size = (nsites,),
+                compChar=['ZXX', 'ZXY', 'ZYX', 'ZYY'],
+                type='Full_Impedance'
+        ))
+
+        expected_data = ModEM_Utils.ExpectedData(
+            data=expected_data_data,
+            data_size=9,
+            header='# Synthetic data set DSM1 from Dublin Institute (2008)',
+            units='Ohm',
+            isign=1,
+            origin=[0.0, 0.0],
+            info = expected_data_info,
+            info_size=1,
+            expected_periods=expected_periods
+        )
+
+        read_result_og = ModEM_Utils.do_ml_readZ(self.eng, off_diag_imp_fname)
+        print(read_result_og['info'][0].keys())
+        read_result = copy.deepcopy(read_result_og)
+
+        self.assert_readZ_return_types(result, read_result)
+        if result.result == "FAILED":
+            return result
+
+        self.assert_readZ(result, read_result, expected_data)
+        if result.result == "FAILED":
+            return result
+
+        header = "# SMARTS writz test"
+        write_fname = 'test.write.full_imp.dat'
+        print(f"Testing writeZ_3D_MC_fixes with '{write_fname}'")
+        status = self.eng.writeZ_3D_MC_fixes(write_fname, read_result_og['data'], header, 'ohm', 1, nargout=1)
+
+        if status != 0:
+            result.result = "FAILED"
+            result.msg = f"Calling writeZ_3D_MC_fixes on {write_fname} returned a non-zero status code from ML: {status}"
+            return result
+
+        full_imp_fname = os.path.abspath(os.path.join(self.test_dir, 'ReadWriteData', 'full_impedance_only.dat')) 
+        read_expected = ModEM_Utils.convert_read_into_expected_datatype(read_result)
+        full_imp_read = ModEM_Utils.read_into_expected_datatypes(self.eng, full_imp_fname)
+
+        self.assert_readZ(result, read_result, full_imp_read)
+        if result.result == "FAILED":
+            return result
+
+
+        result.result = "PASSED"
+        result.msg = f"Could read full_impedance"
+        return result
+
 
     
     def assert_readZ(self, result, readZ3d_result, expected : ModEM_Utils.ExpectedData):

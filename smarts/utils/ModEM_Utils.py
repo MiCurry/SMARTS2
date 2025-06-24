@@ -219,8 +219,6 @@ def convert_ml_info_to_py(eng, obj: str) -> list[dict]:
     for i in range(1, y+1):
         access_str = f'{obj}{{{i}}}'
 
-        print("Access_string: ", access_str)
-
         infos.append({
             'data' : eng.eval(f'{access_str}.data'),
             'err' : eng.eval(f'{access_str}.err'),
