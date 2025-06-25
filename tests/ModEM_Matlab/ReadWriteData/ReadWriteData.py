@@ -110,6 +110,7 @@ class ReadWriteData:
         print()
 
         print("Testing read_one_data_type_failed with one that that is not present")
+        print("The error below is expected (if success):")
         result = self.test_read_one_data_type_failed(result)
         if result.result == "FAILED":
             return result
@@ -119,6 +120,22 @@ class ReadWriteData:
         result = self.test_read_off_diag_rho_phase(result)
         if result.result == "FAILED":
             return result
+
+        print()
+        print("Testing phase_tensor...")
+        result = self.test_phase_tensor(result)
+        if result.result == "FAILED":
+            return result
+
+        print()
+        print("Testing phase_tensor_and_off_diag_rho_phase...")
+        result = self.test_phase_tensor_and_off_diag_rho_phase(result)
+        if result.result == "FAILED":
+            return result
+
+
+        result.result = "PASSED"
+        result.msg = "Able to read all data files!"
 
     def test_read_imp_n_vert_comp(self, result):
         result.result = "FAILED"
@@ -239,8 +256,6 @@ class ReadWriteData:
         self.eng.workspace['header'] = header
         self.eng.workspace['units'] = expected_units
         self.eng.workspace['isign'] = 1
-
-        self.eng.eval('disp("hello world I am here")', nargout=0)
 
         print(f"Testing writeZ_3d with {write_fname}")
         self.eng.evalc('[status] = writeZ_3D_MC_fixes(fname, data, header, units, 1)')
@@ -654,14 +669,14 @@ class ReadWriteData:
         header = '# Smarts write tests'
         write_fname = 'test.write.off_diag_rho_phase.dat'
         print(f"Testing writeZ_3d with {write_fname}")
-        status = self.eng.writeZ_3D_MC_fixes(write_fname, read_result_plain['data'], header, expected_units, 1, False, nargout=1)
+        status = self.eng.writeZ_3D_MC_fixes(write_fname, read_result_plain['data'], header, expected_units, 0, False, nargout=1)
         if status != 0:
             result.result = "FAILED"
             result.msg = f"Calling writeZ_3D_MC_fixes on {write_fname} returned a non-zero status code from ML: {status}"
             return result
 
         print(f"Rereading {write_fname} and checking it against read_result")
-        re_read = ModEM_Utils.read_into_expected_datatypes(self.eng, write_fname, apres=True)
+        re_read = ModEM_Utils.read_into_expected_datatypes(self.eng,  write_fname, apres=True)
         self.assert_readZ(result, read_result_plain, re_read)
         if result.result == "FAILED":
             return result
@@ -749,7 +764,6 @@ class ReadWriteData:
         )
 
         read_result_og = ModEM_Utils.do_ml_readZ(self.eng, full_impedance_fname)
-        print(read_result_og['info'][0].keys())
         read_result = copy.deepcopy(read_result_og)
 
         self.assert_readZ_return_types(result, read_result)
@@ -828,7 +842,7 @@ class ReadWriteData:
                 units = 'Ohm',
 
                 signConvention = 1,
-                nComp = ncopms,
+                nComp = ncomps,
                 siteLoc = None,
                 siteLoc_size = (nsites, 3),
 
@@ -866,7 +880,6 @@ class ReadWriteData:
         )
 
         read_result_og = ModEM_Utils.do_ml_readZ(self.eng, off_diag_imp_fname)
-        print(read_result_og['info'][0].keys())
         read_result = copy.deepcopy(read_result_og)
 
         self.assert_readZ_return_types(result, read_result)
@@ -900,7 +913,262 @@ class ReadWriteData:
         result.msg = f"Could read full_impedance"
         return result
 
+    def test_phase_tensor(self, result):
+        result.result = "FAILED"
+        result.msg = f"Could not read Phase_Tensor"
 
+        off_diag_imp_fname = os.path.abspath(os.path.join(self.test_dir, 'ReadWriteData', 'phase_tensor.dat'))
+        print(f"Testing: readZ_3D... on {off_diag_imp_fname}")
+        self.check_if_file_present(off_diag_imp_fname, result)
+        if result.result == 'FAILED':
+            return result
+
+        expected_periods = np.array([3.981072, 15.84893, 63.09573, 251.1886, 1000.0, 3981.072])
+
+        nsites = 441
+        nperiods = len(expected_periods)
+        ncomps = 4
+
+        expected_data_info = []
+        for info in range(0, 2):
+            expected_data_info.append(ModEM_Utils.ExpectedDataInfo(
+                data = None,
+                data_size = (nsites, nperiods, ncomps),
+                err = None,
+                err_size = (nsites, nperiods, ncomps),
+                lat=None,
+                lat_size=(1, nsites),
+                lon=None,
+                lon_size=(1, nsites),
+                loc=None,
+                loc_size=(1, nsites),
+                code=None,
+                code_size=(nsites,),
+                per=expected_periods,
+                ncomp=ncomps,
+                comp=['PTXX', 'PTXY', 'PTYX', 'PTYY'],
+                type='Phase_Tensor'
+            ))
+
+        expected_data_data = []
+        for period in expected_periods:
+            expected_data_data.append(ModEM_Utils.ExpectedDataData(
+                T = period,
+                Cmplx = 0,
+                units = '',
+
+                signConvention = 1,
+                nComp = ncomps,
+                siteLoc = None,
+                siteLoc_size = (nsites, 3),
+
+                siteChar = None,
+                siteChar_size = (nsites, 7),
+
+                Z = None,
+                Z_size = (nsites,),
+
+                Zerr = None,
+                Zerr_size = (nsites,),
+
+                origin = [0.0, 0.0, 0.0],
+                orient = 0.0,
+
+                lat = None,
+                lat_size = (nsites,),
+
+                lon = None,
+                lon_size = (nsites,),
+                compChar=['PTXX', 'PTXY', 'PTYX', 'PTYY'],
+                type='Phase_Tensor'
+        ))
+
+        expected_data = ModEM_Utils.ExpectedData(
+            data=expected_data_data,
+            data_size=len(expected_periods),
+            header='# Synthetic data set DSM1 from Dublin Institute (2008)',
+            units='',
+            isign=1,
+            origin=[0.0, 0.0],
+            info = expected_data_info,
+            info_size=1,
+            expected_periods=expected_periods
+        )
+
+        read_result_og = ModEM_Utils.do_ml_readZ(self.eng, off_diag_imp_fname, apres=True)
+        read_result = copy.deepcopy(read_result_og)
+
+        self.assert_readZ_return_types(result, read_result)
+        if result.result == "FAILED":
+            return result
+
+        self.assert_readZ(result, read_result, expected_data)
+        if result.result == "FAILED":
+            return result
+
+        header = "# SMARTS writz test"
+        write_fname = 'test.write.phase_tensor.dat'
+        print(f"Testing writeZ_3D_MC_fixes with '{write_fname}'")
+        status = self.eng.writeZ_3D_MC_fixes(write_fname, read_result_og['data'], header, 'ohm', 1, nargout=1)
+
+        if status != 0:
+            result.result = "FAILED"
+            result.msg = f"Calling writeZ_3D_MC_fixes on {write_fname} returned a non-zero status code from ML: {status}"
+            return result
+
+        phase_tensor_fname = os.path.abspath(os.path.join(self.test_dir, 'ReadWriteData', 'phase_tensor.dat')) 
+        read_expected = ModEM_Utils.convert_read_into_expected_datatype(read_result)
+        full_imp_read = ModEM_Utils.read_into_expected_datatypes(self.eng, phase_tensor_fname, apres=True)
+
+        self.assert_readZ(result, read_result, full_imp_read)
+        if result.result == "FAILED":
+            return result
+
+
+        result.result = "PASSED"
+        result.msg = f"Could read Phase_Tensor"
+        return result
+
+    def test_phase_tensor_and_off_diag_rho_phase(self, result):
+        result.result = "FAILED"
+        result.msg = f"Could not read phase_tensor_and_off_diagagonal_rho_phase"
+
+        fname= os.path.abspath(os.path.join(self.test_dir, 'ReadWriteData', 'phase_tensor_and_off_diag_rho_phase.dat'))
+        print(f"Testing: readApres_3D... on {fname}")
+        self.check_if_file_present(fname, result)
+        if result.result == 'FAILED':
+            return result
+
+        expected_periods = np.array([3.981072, 15.84893, 63.09573, 251.1886, 1000.0, 3981.072])
+
+        expected_phase_tensor_comp_chars = ['PTXX', 'PTXY', 'PTYX', 'PTYY']
+        expected_off_diag_rho_phase_comp_chars = ModEMData.DATA_TYPE_COMPONENT_MAP['Off_Diagonal_Rho_Phase']
+        expected_txtypes = ['Phase_Tensor', 'Off_Diagonal_Rho_Phase']
+        ncomps = [4, 4]
+        expected_units='[V/m]/[T]'
+        total_comps = ncomps[0] + ncomps[1]
+        expected_comps = [expected_phase_tensor_comp_chars, expected_off_diag_rho_phase_comp_chars]
+        expected_data_info = []
+
+        data_sizes=[(441, 6, 4,), (441, 6, 4)]
+
+        lat_size = (1, 441)
+        lon_size = (1, 441)
+        loc_size = (1, 441)
+
+        for info in range(0, 2):
+            expected_data_info.append(
+                ModEM_Utils.ExpectedDataInfo(
+                    data=None,
+                    data_size=data_sizes[info],
+                    err=None,
+                    err_size=data_sizes[info],
+                    lat=None,
+                    lat_size=lat_size,
+                    lon=None,
+                    lon_size=lon_size,
+                    loc=None,
+                    loc_size=loc_size,
+                    code=None,
+                    code_size=(441,),
+                    per=expected_periods,
+                    ncomp=ncomps[info],
+                    comp=expected_comps[info],
+                    type=[expected_txtypes[info]]
+                )
+            )
+
+        all_comps = []
+        all_comps.extend(expected_phase_tensor_comp_chars)
+        all_comps.extend(expected_off_diag_rho_phase_comp_chars)
+
+        origin = np.array([0, 0, 0])
+        expected_data_data = []
+        for period in expected_periods:
+            expected_data_data.append(ModEM_Utils.ExpectedDataData(
+                T=period,
+                Cmplx=0,
+                units=expected_units,
+
+                signConvention=1,
+                nComp=total_comps,
+
+                siteLoc=None,
+                siteLoc_size=(441, 3),
+
+                siteChar = None,
+                siteChar_size= (441, 1,),
+
+                Z=None,
+                Z_size=(441,),
+
+                Zerr=None,
+                Zerr_size=(441,),
+
+                origin = origin,
+                orient = 0.0,
+
+                lat = None,
+                lat_size = (441,),
+
+                lon = None,
+                lon_size = (441,),
+
+                compChar=np.array(['PTXX ', 'PTXY ', 'PTYX ', 'PTYY ', 'RHOXY', 'PHSXY', 'RHOYX', 'PHSYX']),
+                type=''
+            ))
+
+        expected_data = ModEM_Utils.ExpectedData(
+            data=expected_data_data,
+            data_size=len(expected_periods),
+            header='',
+            units=expected_units,
+            isign=1,
+            origin=origin,
+            info=expected_data_info,
+            info_size=len(expected_data_info),
+            expected_periods=expected_periods
+        )
+
+
+        read_result = ModEM_Utils.do_ml_readZ(self.eng, fname, apres=True, units=expected_units)
+        read_result_plain = copy.deepcopy(read_result)
+
+        for r in read_result_plain['data']:
+            r['nanvalue'] = 999999
+
+        self.assert_readZ(result, read_result, expected_data)
+        if result.result == "FAILED":
+            return result
+
+        header = '# Smarts write tests'
+        write_fname = 'test.write.phase_tensor_and_off_diag_rho_phase.dat'
+
+        self.eng.workspace['fname'] = write_fname
+        self.eng.workspace['header'] = header
+        self.eng.workspace['units'] = expected_units
+        self.eng.workspace['isign'] = 1
+
+        print(f"Testing writeZ_3d with {write_fname}")
+        self.eng.evalc('[status] = writeZ_3D_MC_fixes(fname, data, header, units, 1)')
+        status = self.eng.workspace['status']
+
+        if status != 0:
+            result.result = "FAILED"
+            result.msg = f"Calling writeZ_3D_MC_fixes on {write_fname} returned a non-zero status code from ML: {status}"
+            return result
+
+        print(f"Rereading {write_fname} and checking it against read_result")
+        re_read = ModEM_Utils.read_into_expected_datatypes(self.eng, write_fname, apres=True, units=expected_units)
+
+        self.assert_readZ(result, read_result_plain, re_read)
+        if result.result == "FAILED":
+            return result
+
+        result.result = "PASSED"
+        result.msg = "Able to read/write phase_tensor_and_off_diag_rho_phase.dat"
+        return result
+    
     
     def assert_readZ(self, result, readZ3d_result, expected : ModEM_Utils.ExpectedData):
         # Struct return types
@@ -933,7 +1201,7 @@ class ReadWriteData:
 
         if isign != expected.isign:
             result.result = "FAILED"
-            result.msg = f"Expected 'isign' to be {expected.isgn} instead got {isign}"
+            result.msg = f"Expected 'isign' to be {expected.isign} instead got {isign}"
             return result
 
         origin = np.array(origin)

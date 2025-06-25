@@ -84,10 +84,11 @@ class ReadZResult:
     size : matlab.double
     info : list[dict]
 
-def read_into_expected_datatypes(eng, fname : str, apres=False) -> dict:
-    return convert_read_into_expected_datatype(do_ml_readZ(eng, fname, apres=apres))
+def read_into_expected_datatypes(eng, fname : str, apres=False, units='') -> dict:
+    return convert_read_into_expected_datatype(do_ml_readZ(eng, fname, apres=apres, units=units))
 
 def convert_read_into_expected_datatype(read) -> dict:
+
 
     data : ExpectedData
 
@@ -130,7 +131,6 @@ def convert_read_into_expected_datatype(read) -> dict:
         Zerr = np.array(data['Zerr'])
         lat = np.array(data['lat'])
         lon = np.array(data['lon'])
-
 
         datas.append(ExpectedDataData(
             T = data['T'],
@@ -193,7 +193,7 @@ def do_ml_readZ(eng, fname, units='', onetype='', nanvalue=None, apres=False) ->
         eng.evalc('[data, header, units, isign, origin, info] = readZ_3D(fname, newunits, onetype, nanvalue)')
 
     header = eng.workspace['header']
-    units = eng.workspace['units']
+    units_read = eng.workspace['units']
     isign = eng.workspace['isign']
     origin = eng.workspace['origin']
     size = eng.eval('size(info{1}.code)')
@@ -203,7 +203,7 @@ def do_ml_readZ(eng, fname, units='', onetype='', nanvalue=None, apres=False) ->
     return {
         'data' : data,
         'header' : header,
-        'units' : units,
+        'units' : units_read,
         'isign' : isign,
         'origin' : origin,
         'size' : size,
