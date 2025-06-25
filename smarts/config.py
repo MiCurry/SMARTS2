@@ -37,7 +37,6 @@ class Config:
 
     @env.setter
     def env(self, value : Environment):
-        print("Setting enviornment file")
         self._data.environment = value
 
     @property
@@ -79,7 +78,6 @@ class CommandLineConfig(Config):
         self.setup_argparse()
 
     def setup_argparse(self):
-        print("Setting up optional argparse")
         optional = self.parser.add_argument_group('Optional arguments')
 
         optional.add_argument('-e', '--env-file',
@@ -122,7 +120,10 @@ class SmartsCFConfig(Config):
         if self.is_config_present():
             self.parse_config()
         else:
-            print("Config is not present")
+            if self.smartsCfType == SmartscfType.USER:
+                print("SmartsConfig: User Config (~/.smartscf) is not present")
+            elif self.smartsCfType == SmartscfType.CWD:
+                print("SmartsConfig: Current Working directory (./.smartscf) is not present")
 
     @property
     def config_location(self) -> str:

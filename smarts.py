@@ -71,7 +71,6 @@ def setup_smarts(envFile=None, testDir=None, srcDir=None):
     smarts TestManager - Will fail if any of the above files or directories
     do not exist """
 
-    print(testDir)
     if not os.path.isfile(envFile):
         print("ERROR: The environment.yaml file does not exist!")
         print("ERROR: Was it specified correctly?")
