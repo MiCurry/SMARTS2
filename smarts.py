@@ -103,6 +103,7 @@ def list_cmd(args):
 
     testDir = args.config.test_dir
     envFile = args.config.env_file
+    srcDir = args.config.src_dir
 
     env, test_handler = setup_smarts(envFile, testDir)
 
@@ -119,8 +120,15 @@ def list_cmd(args):
             modsets = env.list_modsets()
             print_modsets(modsets, env.name)
             return 0
+        elif args.items[0] == 'config':
+            print('\n=== Smarts Configuration:')
+            print(f'Enviornment File: {envFile}')
+            print(f'Test Direcotry: {testDir}')
+            print(f'Source File: {srcDir}')
+            print('')
+            return 0
         else:
-            print("ERROR: Unkown subcommand: ", args.items[0])
+            print("ERROR: Unkown subcommand: ", args.items[1])
             args.listParser.print_help()
             sys.exit(-1)
     if len(args.items) > 1:
@@ -168,7 +176,7 @@ if __name__ == "__main__":
                                     description='Description for list sub-command',
                                     epilog='Epilog for list sub-command')
     listParser.add_argument('items',
-                            help='List items help message',
+                            help='List items - either \'test\', \'env\' (not yet implemented), or \'config\'',
                             nargs='+')
     listParser.set_defaults(func=list_cmd)
 
@@ -178,7 +186,7 @@ if __name__ == "__main__":
                                     description='Description for run sub-command',
                                     epilog='Epilog for run sub-command')
     runParser.add_argument('items',
-                        help='Run items help message',
+                        help='Selection of test names to run (use `smarts.py list tests` to find a list of tests)',
                         nargs='+')
     runParser.set_defaults(func=run_cmd)
 
