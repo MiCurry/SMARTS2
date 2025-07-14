@@ -160,6 +160,9 @@ class SmartsConfig:
         self.user_config = SmartsCFConfig(SmartscfType.USER)
         self.cwd_config = SmartsCFConfig(SmartscfType.CWD)
 
+    def parse_command_line_args(self, args):
+        self.cl_config.parse_config_arguments(args)
+
     @property
     def test_dir(self):
         if self.cl_config.test_dir is not None:
@@ -189,14 +192,24 @@ class SmartsConfig:
 
     @property
     def env_file(self):
-        if self.cl_config.source_dir is not None:
+        if self.cl_config.env_file is not None:
             return self.cl_config.env_file
 
-        if self.cwd_config.source_dir is not None:
+        if self.cwd_config.env_file is not None:
             return self.cwd_config.env_file
 
-        if self.user_config.source_dir is not None:
+        if self.user_config.env_file is not None:
             return self.user_config.env_file
 
         raise ValueError(f'No enviornment file was found in any configuration')
-    
+
+    @property
+    def verbose(self):
+        if self.cl_config.verbose is not None:
+            return self.cl_config.verbose
+
+        if self.cwd_config.verbose is not None:
+            return self.cwd_config.verbose
+
+        if self.user_config.verbose is not None:
+            return self.user_config.verbose

@@ -121,10 +121,11 @@ def list_cmd(args):
             print_modsets(modsets, env.name)
             return 0
         elif args.items[0] == 'config':
-            print('\n=== Smarts Configuration:')
+            print('\n=== Smarts Configuration ===\n')
             print(f'Enviornment File: {envFile}')
             print(f'Test Direcotry: {testDir}')
             print(f'Source File: {srcDir}')
+            print(f'Verbosity: {args.config.verbose}')
             print('')
             return 0
         else:
@@ -195,6 +196,8 @@ if __name__ == "__main__":
     args.listParser = listParser
     args.runParser = runParser
     args.config = config
+
+    config.parse_command_line_args(args)
 
     if args.command is None:
         parser.print_help()
