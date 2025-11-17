@@ -30,6 +30,7 @@ class TestSubProcess(mp.Process):
                                          env,
                                          srcDir,
                                          testDir,
+                                         test_options=None,
                                          hpc=None,
                                          *args, **kwargs):
         mp.Process.__init__(self)
@@ -42,6 +43,7 @@ class TestSubProcess(mp.Process):
         self.args = args
         self.kwargs = kwargs
         self.DEBUG = kwargs.get('DEBUG', 0)
+        self.test_options = test_options
 
         # Initalize the Result Class - I.E. Start the Result Manager
         result = result()
@@ -95,7 +97,7 @@ class TestSubProcess(mp.Process):
 
 class TestManager:
     """ class TestRunner - Class responsible for managing and running tests """
-    def __init__(self, env, testDir, srcDir, *args, **kwargs):
+    def __init__(self, env, testDir, srcDir, test_options=None, *args, **kwargs):
         """ Initalize the TestRunner. After initalization the TestRunner will have two
         nested-classes, a TestManager (self) and a TestScheduler (self),
         as well as an HPC class (if avaliable)
@@ -112,6 +114,7 @@ class TestManager:
         self.avaliable_tests = None
         self.invalid_tests = None
         self.launch_names = None
+        self.test_options = test_options
 
         mp.set_start_method('fork')
 
@@ -130,6 +133,7 @@ class TestManager:
             print("TestRunner: Test directory is: ", self.testDir)
 
         sys.path.insert(0, self.testDir)
+        self.convert_options_info_kwargs()
 
     def list_tests(self, *args, **kwargs):
         """ Return a list of valid and a list of invalid tests found in the testDir. In the valid
@@ -228,6 +232,26 @@ class TestManager:
     def check_test(self, test, **kwargs):
         """ Check to see if the test suite and test name are on the system """
         raise NotImplementedError("TestManager.check_test"+NOT_IMPLEMENTED_ERROR)
+
+    def convert_options_info_kwargs(self) -> dict:
+        options = {}
+
+        if self.test_options is None:
+            return options
+
+        for option in self.test_options:
+            try:
+                key, value = option.split('=')
+            except:
+                raise ValueError(f"Test options must be 'name=value' pairs: (-o name=value -o name2=value2)")
+            
+
+            options[key.strip()] = value.strip()
+
+        self.test_options = options
+
+        return self.test_options
+
 
     def _create_run_directory(self):
         """ Create a run directory with the structure: run-smarts.year-mm-dd_hh.mm.ss """
@@ -331,7 +355,8 @@ class TestManager:
                                      self.env,
                                      self.srcDir,
                                      self.testDir,
-                                     self.hpc)
+                                     self.hpc,
+                                     **self.test_options)
         return testProcess
 
 
@@ -362,7 +387,8 @@ class TestManager:
         """ Import and initialize each test - If a test has any dependents (that are not specified)
         then automatically load the tests, which will cause it to be added to loaded_tests """
         loaded_tests = []
-        for test_launch_name in tests:
+
+        for idx, test_launch_name in enumerate(tests):
             if self.validate_test(test_launch_name):
                 test = self.load_test(test_launch_name)
                 loaded_tests.append(test)

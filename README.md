@@ -184,6 +184,25 @@ following order (1 = highest priority).
 2. Current working directory .smartscf
 3. User config ~/.smartscf
 
+# Test Options
+
+You can pass options to a test by using the `-o` option and specifying a name,
+value pair: `-o name=value`.
+
+For instance, you can run the `argument_test` and pass it any options you desire:
+
+```
+$ python smarts.py -t ./tests/basic_tests run argument_test -o compiler=gnu -o output=False
+```
+
+At the moment, test options will be passed to all tests. Test options will be
+passed to all tests using `kwargs`. Tests themselves can use the `kwargs`:
+
+```python
+        def run(self, env, result, srcDir, testDir, hpc=None, *args, **kwargs):
+                logger.info(f"Test Arguments: {kwargs}")
+```
+
 
 # Planned Features
 

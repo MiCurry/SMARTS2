@@ -74,7 +74,7 @@ class Config:
 class CommandLineConfig(Config):
     def __init__(self, parser):
         super().__init__()
-        self.parser = parser
+        self.parser : argparse.ArgumentParser = parser
         self.setup_argparse()
 
     def setup_argparse(self):
@@ -95,7 +95,6 @@ class CommandLineConfig(Config):
                             help='The location of the test directory',
                             metavar='dir',
                             default=None)
-
         optional.add_argument('-v', '--verbose',
                             dest='verbose',
                             help="Output debug level",

@@ -1,9 +1,18 @@
 """ SMARTs Command Line Runner """
 
-from __future__ import absolute_import, division, print_function
 import os
 import sys
 import argparse
+import logging
+from typing import Tuple
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format=f'%(name)s: %(message)s'
+)
+
+logger = logging.getLogger('SMARTS')
+
 from smarts.config import CommandLineConfig, SmartsCFConfig, SmartsConfig, SmartscfType
 from smarts.env import Environment
 from smarts.testManager import TestManager
@@ -12,24 +21,24 @@ def print_tests(test_directory, valid_tests, invalid_tests):
     """ Command line routine to retrive valid and invalid tests and print
     them out to the terminal """
 
-    print("Tests found in: ", test_directory, ":", sep='')
+    logger.info(f"Tests found in: {test_directory}:")
 
     if len(valid_tests) > 0:
-        print("Valid tests:")
+        logger.info("Valid tests:")
         for tests in valid_tests:
-            print("  -", tests[0], "--", tests[1])
+            logger.info(f"  - {tests[0]} -- {tests[1]}")
 
-    print()
+    logger.info("")
 
     if len(invalid_tests) > 0:
-        print("Invalid tests: (These tests were not able to be loaded)")
+        logger.info("Invalid tests: (These tests were not able to be loaded)")
         for tests in invalid_tests:
-            print("  x", tests[0], "--", tests[1])
-        print()
+            logger.info("  x", tests[0], "--", tests[1])
+        logger.info()
     elif len(valid_tests) == 0 and len(invalid_tests) == 0:
-        print("ERROR: No tests found in this directory!")
-        print("ERROR: Was the right test directory given or were the")
-        print("ERROR: tests created correctly?")
+        logger.error("error: No tests found in this directory!")
+        logger.error("error: Was the right test directory given or were the")
+        logger.error("error: tests created correctly?")
         return -1
 
     return 0
@@ -38,9 +47,9 @@ def print_modsets(modsets, envName):
     """ Retrive and print the modsets in the environment file specified with -e/--env """
     # SMARTS Command Line API print modset function - Print the list of modsets
     # found in the enviornment.yaml file
-    print("Avaliable Modsets on:", envName)
+    logger.info(f"Avaliable Modsets on: {envName}")
     for mods in modsets:
-        print('-', mods['name'], '\t', mods['compiler']['version'])
+        logger.info(f"-, {mods['name']} \t {mods['compiler']['version']}")
 
 
 def print_test_info(tests):
@@ -51,14 +60,14 @@ def print_test_info(tests):
 
     for test in tests:
         if 'error' in test.keys():
-            print("ERROR LOADING:", test['runName'])
-            print(test['error'])
+            logger.error(f"error LOADING: {test['runName']}")
+            logger.error(f"{test['error']}")
         else:
-            print("    Run name:", test['runName'])
-            print("   Long name:", test['longName'])
-            print(" Description:", test['description'])
-            print("       ncpus:", test['ncpus'])
-            print('Dependencies:', test['dependencies'])
+            logger.info(f"    Run name: {test['runName']}")
+            logger.info(f"   Long name: {test['longName']}")
+            logger.info(f" Description: {test['description']}")
+            logger.info(f"       ncpus: {test['ncpus']}")
+            logger.info(f"Dependencies: {test['dependencies']}")
 
         if len(tests) != 1:
             print('------------------------------------------------------')
@@ -66,33 +75,33 @@ def print_test_info(tests):
     return 0
 
 
-def setup_smarts(envFile=None, testDir=None, srcDir=None):
+def setup_smarts(envFile=None, testDir=None, srcDir=None, options=None) -> Tuple[Environment, TestManager]:
     """ Helper function to intialize the smarts Environment class and
     smarts TestManager - Will fail if any of the above files or directories
     do not exist """
 
     if not os.path.isfile(envFile):
-        print("ERROR: The environment.yaml file does not exist!")
-        print("ERROR: Was it specified correctly?")
-        print("ERROR: ", envFile)
+        logger.error("error: The environment.yaml file does not exist!")
+        logger.error("error: Was it specified correctly?")
+        logger.error(f"error: {envFile}")
         sys.exit(-1)
     if not os.path.isdir(testDir):
-        print("ERROR: The test directory does not exist!")
-        print("ERROR: Was it specified correctly?")
-        print("ERROR: ", testDir)
+        logger.error("error: The test directory does not exist!")
+        logger.error("error: Was it specified correctly?")
+        logger.error(f"error: {testDir}")
         sys.exit(-1)
     if srcDir:
         if not os.path.isdir(srcDir):
-            print("ERROR: The source directory does not exist!")
-            print("ERROR: Was it specified correctly?")
-            print("ERROR: ", srcDir)
+            logger.error("error: The source directory does not exist!")
+            logger.error("error: Was it specified correctly?")
+            logger.error(f"error: {srcDir}")
             sys.exit(-1)
 
     env = Environment(envFile)
     if env.parse_file() == -1:
         sys.exit(-1)
 
-    test_handler = TestManager(env, testDir, srcDir)
+    test_handler = TestManager(env, testDir, srcDir, test_options=options)
 
     return env, test_handler
 
@@ -121,15 +130,15 @@ def list_cmd(args):
             print_modsets(modsets, env.name)
             return 0
         elif args.items[0] == 'config':
-            print('\n=== Smarts Configuration ===\n')
-            print(f'Enviornment File: {envFile}')
-            print(f'Test Direcotry: {testDir}')
-            print(f'Source File: {srcDir}')
-            print(f'Verbosity: {args.config.verbose}')
-            print('')
+            logger.info('\n=== Smarts Configuration ===\n')
+            logger.info(f'Enviornment File: {envFile}')
+            logger.info(f'Test Direcotry: {testDir}')
+            logger.info(f'Source File: {srcDir}')
+            logger.info(f'Verbosity: {args.config.verbose}')
+            logger.info('')
             return 0
         else:
-            print("ERROR: Unkown subcommand: ", args.items[1])
+            logger.error(f"error: Unkown subcommand: {args.items[1]}")
             args.listParser.print_help()
             sys.exit(-1)
     if len(args.items) > 1:
@@ -152,8 +161,14 @@ def run_cmd(args):
     srcDir = args.config.src_dir
     envFile = args.config.env_file
     tests = list(set(args.items))
+    options = None
 
-    env, test_handler = setup_smarts(envFile=envFile, testDir=testDir, srcDir=srcDir)
+    if args.options is not None:
+        options = args.options
+
+    logger.debug("Test Directory: {testDir} - Source Dir: {srcDir} - envFile: {envFile} - options: {options}")
+
+    env, test_handler = setup_smarts(envFile=envFile, testDir=testDir, srcDir=srcDir, options=options)
     test_handler.run_tests(tests, env)
 
     return 0
@@ -188,7 +203,12 @@ if __name__ == "__main__":
                                     epilog='Epilog for run sub-command')
     runParser.add_argument('items',
                         help='Selection of test names to run (use `smarts.py list tests` to find a list of tests)',
-                        nargs='+')
+                        nargs='*')
+
+    runParser.add_argument('-o', '--options', 
+                            help='Options for each test',
+                            default=None,
+                            action='append')
     runParser.set_defaults(func=run_cmd)
 
     args = parser.parse_args()
