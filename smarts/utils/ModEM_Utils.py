@@ -1,5 +1,9 @@
+import sys
+import os
+
 from dataclasses import dataclass
 
+import logging
 from typing import Any, Dict, List, Tuple
 import numpy as np
 from smarts.utils import matlab_utils
@@ -287,9 +291,59 @@ def convert_ml_data_to_py(eng, obj: str) -> list[dict]:
 
     return allData
 
-
-
-
 class ModEM_Data:
     def __init__(self, eng):
         eng = eng
+
+
+def do_modem_config(log : logging.Logger,
+                    modem_root_dir : str,
+                    compiler : str = 'gfortran',
+                    makefile_name : str = None,
+                    debug_or_release : str = 'release',
+                    mpi_or_serial : str = 'MPI',
+                    forward_type : str = 'SP2',
+                    config_exe : str='configure',  
+                    ) -> str:
+    import subprocess
+
+    dir_stack = os.getcwd()
+    os.chdir(os.path.join(modem_root_dir, 'f90'))
+
+    if not os.path.isdir(os.path.join(modem_root_dir, 'f90')):
+        raise ValueError(f'\'f90\' directory was not found at {modem_root_dir} - please specify the root modem directory')
+
+    if makefile_name is None:
+        makefile_name = f'Makefile.{compiler}.{debug_or_release}.{mpi_or_serial}.{forward_type}'
+
+    config_exe = [config_exe, 
+                  compiler,
+                  makefile_name,
+                  debug_or_release,
+                  mpi_or_serial,
+                  forward_type]
+
+    file_handler = logging.FileHandler('./out.configure.log', mode='a')
+    file_handler.setLevel(logging.INFO)
+    log.addHandler(file_handler)
+
+    failed = False
+    try:
+        process = subprocess.run(config_exe,
+                                check=True,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT
+                                )
+    except subprocess.CalledProcessError as e:
+        failed = True
+        
+
+    log.info(process.stdout.decode('utf-8'))
+
+    if failed:
+        raise subprocess.CalledProcessError(e)
+
+    log.removeHandler(file_handler)
+
+    return makefile_name
+

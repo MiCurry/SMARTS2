@@ -114,7 +114,11 @@ class TestManager:
         self.avaliable_tests = None
         self.invalid_tests = None
         self.launch_names = None
-        self.test_options = test_options
+
+        if test_options is not None:
+            self.test_options = test_options
+        else:
+            self.test_options = {}
 
         mp.set_start_method('fork')
 

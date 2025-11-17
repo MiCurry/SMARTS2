@@ -6,9 +6,11 @@ import argparse
 import logging
 from typing import Tuple
 
+from smarts.utils.utils import RED, RESET
+
 logging.basicConfig(
     level=logging.DEBUG,
-    format=f'%(name)s: %(message)s'
+    format=f'{RED}%(name)s:{RESET} %(message)s'
 )
 
 logger = logging.getLogger('SMARTS')

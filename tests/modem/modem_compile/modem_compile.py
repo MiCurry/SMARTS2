@@ -24,11 +24,10 @@ def extract_modset(executable: str) -> str:
 
     return False
     
-
 class modem_compile:
     test_name = "Compile ModEM Test"
     test_description = "Compile all ModEM configurations (Except HDF5)"
-    dependencies = []
+    dependencies = ['make_config_files']
     ncpus = 1
 
     def run(self, env, result, src_dir, test_dir, hpc=None, *args, **kwargs):
@@ -44,19 +43,10 @@ class modem_compile:
             result.msg = f"{src_dir} does not appear to a ModEM source directory"
             return result.result
 
-        # Copy the ModEM source into its own directory in the current run directory
-        modem_src_copy = os.path.join('./', 'ModEM-Model')
-        shutil.copytree(src_dir, modem_src_copy)
-        if not os.path.isdir(modem_src_copy):
-            result.result = "FAILED"
-            result.msg = "ModEM source directory was not copied succesfully!"
-            return result.result
-
         # Change directory to copy of ModEM in the test directory
-        os.chdir(os.path.join(f'./ModEM-Model', 'f90'))
-        makefiles = utils.all_matches(os.listdir('.'),
-                                     ['Makefile', 'modset'],
-                                     ['.f90', 'log'])
+        os.chdir(os.path.join('..', 'make_config_files', './ModEM-Model', 'f90'))
+        makefiles = utils.all_matches(os.listdir('.'), ['Makefile', 'modset'], ['.f90', 'log'])
+        print(os.listdir('.'))
 
         print(f"Makefiles: ", makefiles)
 

@@ -2,6 +2,18 @@ import os
 
 from typing import List
 
+# Text colors
+RED = '\033[31m'
+GREEN = '\033[32m'
+YELLOW = '\033[33m'
+BLUE = '\033[34m'
+MAGENTA = '\033[35m'
+CYAN = '\033[36m'
+WHITE = '\033[37m'
+
+# Reset to default
+RESET = '\033[0m'
+
 def save_run_command(fname: str, cmd: List[str]):
     if os.path.isfile(fname):
         return False
