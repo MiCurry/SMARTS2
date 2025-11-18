@@ -6,14 +6,26 @@ import argparse
 import logging
 from typing import Tuple
 
-from smarts.utils.utils import RED, RESET
+from smarts.utils.utils import BLUE, GREEN, RED, RESET
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format=f'{RED}%(name)s:{RESET} %(message)s'
+    format=f'{BLUE}%(name)s:{RESET} %(message)s'
 )
 
+PASSED_LOG_LEVEL = logging.DEBUG + 5
+
+logging.addLevelName(PASSED_LOG_LEVEL, 'PASSED')
+
+def passed(self, message, *args, **kwargs):
+    message = GREEN + "PASSED! " + message + RESET
+    if self.isEnabledFor(PASSED_LOG_LEVEL):
+        self._log(PASSED_LOG_LEVEL, message, args, **kwargs)
+
+logging.Logger.passed = passed
+
 logger = logging.getLogger('SMARTS')
+
 
 from smarts.config import CommandLineConfig, SmartsCFConfig, SmartsConfig, SmartscfType
 from smarts.env import Environment

@@ -12,7 +12,13 @@ file_logger = logging.getLogger('compile_log')
 
 class modem_fast_compile:
     test_name = "ModEM Fast Compile"
-    test_description = "Compile ModEM for GNU for MF/SP/SP2 Versions\n Options: compiler=gnu, config=mf, "
+    test_description = '''Compile ModEM for MF/SP/SP2 Versions given specific arguments
+                        Options: 
+                            compiler = gfortran* | ifort
+                            config = MF* | SP| SP2
+                            mpi = True* | False
+                            debug = Debug | Release*
+                        '''
     dependencies = []
     ncpus = 1
 
@@ -66,6 +72,8 @@ class modem_fast_compile:
             result.msg = f"Error when calling configure"
             return result.result
 
+        logger.passed("Makefile was created succsfully!")
+
         file_handler = logging.FileHandler('./out.make.log', mode='w')
         file_handler.setLevel(logging.INFO)
         file_logger.addHandler(file_handler)
@@ -82,8 +90,8 @@ class modem_fast_compile:
             #result.msg = f"Error when calling 'make clean' on {makefile_name} - error in: {os.path.abspath('./out.make.log')}"
             #return result.result
 
+        logger.passed("Make clean was called succesfully")
         file_logger.info(process.stdout.decode('utf-8'))
-
 
 
         logger.info(f"Calling make -f {makefile_name}")
@@ -99,6 +107,7 @@ class modem_fast_compile:
             return result.result
 
         file_logger.info(process.stdout.decode('utf-8'))
+        logger.passed("ModEM Compiled succsfully")
 
         
 

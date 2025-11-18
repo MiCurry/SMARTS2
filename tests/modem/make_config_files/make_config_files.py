@@ -21,6 +21,7 @@ class make_config_files:
         # Copy the ModEM source into its own directory in the current run directory
         modem_src_copy = os.path.join('./', 'ModEM-Model')
         shutil.copytree(src_dir, modem_src_copy)
+
         if not os.path.isdir(modem_src_copy):
             result.result = "FAILED"
             result.msg = "ModEM source directory was not copied succesfully!"
