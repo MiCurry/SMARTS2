@@ -3,6 +3,9 @@ import shutil
 import subprocess
 import itertools
 
+import logging
+logger = logging.getLogger("make_config_files")
+
 config_files = {}
 
 class make_config_files:
@@ -30,7 +33,6 @@ class make_config_files:
         # Change directory to copy of ModEM in the test directory
         os.chdir(os.path.join(modem_src_copy, 'f90'))
 
-        CONFIG_DIR = './CONFIG'
 
         compilers = ['gfortran', 'ifort']
         debug_level = ['Debug', 'Release']
@@ -41,7 +43,8 @@ class make_config_files:
 
         csem_selection = 0
 
-        config_exe = 'configure'
+        CONFIG_DIR = './CONFIG'
+        config_exe = os.path.join('./CONFIG', 'configure')
 
         for combo in combinations:
             compiler = combo[0]
@@ -51,15 +54,15 @@ class make_config_files:
 
             makefile_name = f"Makefile.modset:{compiler}.{debug_or_release}.{mpi_or_serial}.{forward_type}"
 
-            config_exe_cmd = [config_exe, 
-                              compiler,
-                              makefile_name, 
-                              debug_or_release, 
-                              mpi_or_serial,
-                              forward_type]
+            config_exe_cmd = [config_exe,
+                              f'-d {debug_or_release}',
+                              f'-m {mpi_or_serial}',
+                              f'-s {forward_type}',
+                              makefile_name,
+                              compiler]
 
-            print("")
-            print(f"Testing configuration creation for {' '.join(config_exe_cmd)}")
+            logger.info("")
+            logger.info(f"Testing configuration creation for {' '.join(config_exe_cmd)}")
 
             log_fname = f'log.{makefile_name}'
             log_file=open(log_fname, 'w')
@@ -77,7 +80,7 @@ class make_config_files:
                 result.msg = f"Did not make the makefile: '{makefile_name}"
                 return result.result
 
-            print("PASSED - Able to create configuration file")
+            logger.info("PASSED - Able to create configuration file")
             
         result.result = "PASSED"
         result.msg = "Succsfully created all CSEM Makefiles"

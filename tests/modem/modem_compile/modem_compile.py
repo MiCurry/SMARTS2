@@ -1,6 +1,9 @@
 import os
 import shutil
 import subprocess
+import logging
+
+logger = logging.getLogger("modem_compile")
 
 from smarts.utils import utils
 
@@ -45,10 +48,9 @@ class modem_compile:
 
         # Change directory to copy of ModEM in the test directory
         os.chdir(os.path.join('..', 'make_config_files', './ModEM-Model', 'f90'))
-        makefiles = utils.all_matches(os.listdir('.'), ['Makefile', 'modset'], ['.f90', 'log'])
-        print(os.listdir('.'))
+        makefiles = utils.all_matches(os.listdir('.'), ['makefile', 'modset'], ['.f90', 'log'])
 
-        print(f"Makefiles: ", makefiles)
+        logger.info(f"Makefiles: {makefile}")
 
         if len(makefiles) == 0:
             result.result = "FAILED"
@@ -57,29 +59,27 @@ class modem_compile:
 
         for makefile in makefiles:
             if 'HDF5' in makefile:
-                print(f"Skipping HDF5 - {makefile}")
+                logger.info(f"Skipping HDF5 - {makefile}")
                 continue
 
             modset = extract_modset(makefile)
 
-            print(f"Testing makefile: '{makefile}'...")
+            logger.info(f"Testing makefile: '{makefile}'...")
 
             if 'gfortran' in modset:
                 modset_name = 'GNU'
             elif 'ifort' in modset:
                 modset_name = 'INTEL'
 
-
             modsets = env.list_modsets(name=modset_name)
 
             if modsets is None:
-                print(f"Modset '{modset_name}' is not on this enviorment. Skipping this makefile")
+                logger.info(f"Modset '{modset_name}' is not on this enviorment. Skipping this makefile")
                 continue
 
-            print(modsets)
-
             for modset in modsets:
-                print(f"Loading modset: {modset}")
+                logger.info("")
+                logger.info(f"Loading modset: {modset}")
                 if not env.load_modset(modset):
                     result.result = "FAILED"
                     result.msg = "Could not load gnu modset {modset}"
@@ -87,12 +87,10 @@ class modem_compile:
 
                 log_filename=f'../../log.make.{modset}.{makefile}.out'
                 log_file=open(log_filename, 'w')
-
-                print(f"Compiling: '{makefile}' with  {modset} - logging into: '{os.path.abspath(log_filename)}'")
-                shutil.copy2(makefile, 'Makefile')
+                logger.info(f"Compiling: '{makefile}' with  {modset} - logging into: '{os.path.abspath(log_filename)}'")
                 
                 try:
-                    ierr = subprocess.run(['make', 'clean'], stdout=log_file, stderr=log_file, check=True)
+                    ierr = subprocess.run(['make', '-f', makefile, 'clean'], stdout=log_file, stderr=log_file, check=True)
                 except subprocess.CalledProcessError as e:
                     result.result = "FAILED"
                     result.msg = f"Error when calling 'make clean' on {makefile} - error in: {os.path.abspath(log_filename)}"
@@ -121,7 +119,7 @@ class modem_compile:
                     return result.result
 
                 shutil.move(modem_exe_default, executable_name)
-                print(f"PASSED - Succesfully compiled {makefile} with {modset} - exe: {executable_name}\n")
+                logger.info(f"PASSED - Succesfully compiled {makefile} with {modset} - exe: {executable_name}\n")
 
 
         result.result = "PASSED"
