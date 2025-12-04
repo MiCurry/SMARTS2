@@ -97,7 +97,7 @@ class TestSubProcess(mp.Process):
 
 class TestManager:
     """ class TestRunner - Class responsible for managing and running tests """
-    def __init__(self, env, testDir, srcDir, test_options=None, *args, **kwargs):
+    def __init__(self, env, testDir, srcDir, test_options=None, force=False, *args, **kwargs):
         """ Initalize the TestRunner. After initalization the TestRunner will have two
         nested-classes, a TestManager (self) and a TestScheduler (self),
         as well as an HPC class (if avaliable)
@@ -110,6 +110,7 @@ class TestManager:
         self.env = env
         self.testDir= testDir
         self.srcDir = srcDir
+        self.force = force
         _debug_ = 0
         self.avaliable_tests = None
         self.invalid_tests = None
@@ -119,6 +120,10 @@ class TestManager:
             self.test_options = test_options
         else:
             self.test_options = {}
+
+        self.convert_options_info_kwargs()
+
+        self.test_options['force'] = force
 
         mp.set_start_method('fork')
 
@@ -137,7 +142,6 @@ class TestManager:
             print("TestRunner: Test directory is: ", self.testDir)
 
         sys.path.insert(0, self.testDir)
-        self.convert_options_info_kwargs()
 
     def list_tests(self, *args, **kwargs):
         """ Return a list of valid and a list of invalid tests found in the testDir. In the valid
@@ -364,7 +368,7 @@ class TestManager:
         return testProcess
 
 
-    def run_tests(self, tests, *args, **kwargs):
+    def run_tests(self, tests, env, *args, **kwargs):
         """ Attempt to run all the tests found in tests. Tests will be ran, if:
 
         1. They can be loaded successfully
@@ -401,12 +405,16 @@ class TestManager:
 
             # Load the test dependencies if it has any
             if hasattr(test.test, 'dependencies'):
+
                 if test.test.dependencies: # Load dep if dependencies != None
                     for dependent in test.test.dependencies:
                         if dependent not in tests:
-                            # Append it to tests so it will be loaded
-                            print("SMARTS:'", dependent, "' is a dependency for '", test.test_launch_name, "' and will be loaded", sep='')
-                            tests.append(dependent)
+                            if self.force:
+                                print(f"SMARTS: 'force' -f/--force is true - NOT loading depdency '{dependent}' for '{test.test_launch_name}")
+                            else:
+                                # Append it to tests so it will be loaded
+                                print("SMARTS:'", dependent, "' is a dependency for '", test.test_launch_name, "' and will be loaded", sep='')
+                                tests.append(dependent)
 
             # Check to see if this test does not require more resources then whats available
             if test.test.ncpus > avaliable_cpus:

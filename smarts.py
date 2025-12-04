@@ -6,23 +6,44 @@ import argparse
 import logging
 from typing import Tuple
 
-from smarts.utils.utils import BLUE, GREEN, RED, RESET
+from smarts.utils.utils import BLUE, GREEN, MAGENTA, RED, RESET, YELLOW
 
 logging.basicConfig(
     level=logging.DEBUG,
     format=f'{BLUE}%(name)s:{RESET} %(message)s'
 )
 
-PASSED_LOG_LEVEL = logging.DEBUG + 5
+SUB_TEST_LOG_LEVEL = logging.DEBUG + 5
+PASSED_LOG_LEVEL = logging.DEBUG + 6
+FAILED_LOG_LEVEL = logging.DEBUG + 7
+SKIPPED_LOG_LEVEL = logging.DEBUG + 8
 
 logging.addLevelName(PASSED_LOG_LEVEL, 'PASSED')
 
+def sub_test(self, name, message, *args, **kwargs):
+    message = MAGENTA + f"SUB-TEST - {name} - " + RESET + message
+    if self.isEnabledFor(SUB_TEST_LOG_LEVEL):
+        self._log(PASSED_LOG_LEVEL, message, args, **kwargs)
+
 def passed(self, message, *args, **kwargs):
-    message = GREEN + "PASSED! " + message + RESET
+    message = GREEN + "PASSED - " + RESET + message
     if self.isEnabledFor(PASSED_LOG_LEVEL):
         self._log(PASSED_LOG_LEVEL, message, args, **kwargs)
 
+def failed(self, message, *args, **kwargs):
+    message = RED + "FAILED - " + RESET + message 
+    if self.isEnabledFor(FAILED_LOG_LEVEL):
+        self._log(FAILED_LOG_LEVEL, message, args, **kwargs)
+
+def skipped(self, message, *args, **kwargs):
+    message = YELLOW + "SKIPPING - " + RESET + message
+    if self.isEnabledFor(SKIPPED_LOG_LEVEL):
+        self._log(SKIPPED_LOG_LEVEL, message, args, **kwargs)
+
+logging.Logger.sub_test = sub_test
 logging.Logger.passed = passed
+logging.Logger.failed = failed
+logging.Logger.skipped = skipped
 
 logger = logging.getLogger('SMARTS')
 
@@ -89,7 +110,7 @@ def print_test_info(tests):
     return 0
 
 
-def setup_smarts(envFile=None, testDir=None, srcDir=None, options=None) -> Tuple[Environment, TestManager]:
+def setup_smarts(envFile=None, testDir=None, srcDir=None, options=None, force=False) -> Tuple[Environment, TestManager]:
     """ Helper function to intialize the smarts Environment class and
     smarts TestManager - Will fail if any of the above files or directories
     do not exist """
@@ -115,7 +136,7 @@ def setup_smarts(envFile=None, testDir=None, srcDir=None, options=None) -> Tuple
     if env.parse_file() == -1:
         sys.exit(-1)
 
-    test_handler = TestManager(env, testDir, srcDir, test_options=options)
+    test_handler = TestManager(env, testDir, srcDir, test_options=options, force=force)
 
     return env, test_handler
 
@@ -175,15 +196,16 @@ def run_cmd(args):
     srcDir = args.config.src_dir
     envFile = args.config.env_file
     tests = list(set(args.items))
+    force = args.force
     options = None
 
     if args.options is not None:
         options = args.options
 
-    logger.debug("Test Directory: {testDir} - Source Dir: {srcDir} - envFile: {envFile} - options: {options}")
+    logger.debug(f"\nTest Directory: {testDir} - Source Dir: {srcDir} - envFile: {envFile} - options: {options} - force {force}\n")
 
-    env, test_handler = setup_smarts(envFile=envFile, testDir=testDir, srcDir=srcDir, options=options)
-    test_handler.run_tests(tests, env)
+    env, test_handler = setup_smarts(envFile=envFile, testDir=testDir, srcDir=srcDir, options=options, force=force)
+    test_handler.run_tests(tests, env, force=force)
 
     return 0
 
@@ -193,6 +215,11 @@ if __name__ == "__main__":
                                      description="A regression testing system for MPAS",
                                      epilog=None)
 
+    parser.add_argument('-f',
+                        '--force',
+                        help="Skip depedencies if they are loaded",
+                        action='store_true',
+                        default=False)
 
     config = SmartsConfig(parser)
 
