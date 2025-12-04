@@ -8,10 +8,26 @@ logger = logging.getLogger("make_config_files")
 
 config_files = {}
 
+
+description = """
+
+Create configuration files for 3D ModEM. Does complete combinations with:
+
+- Solver Type: MF/SP/SP2
+- Compiler: gfortran/ifort
+- MPI: MPI/serial
+- Debug: debug/release
+- Spherical and Non-Spherical Models 
+
+Generates a **ton** of makefiles, which modem_compile can parse and load the
+appropriate modset for.
+
+"""
+
 class make_config_files:
-    test_name = "ModEM Create Make files from Config Scripts"
-    test_description = "Create configuration files for 2D/3D MF, SP, SP2"
-    dependencies = None
+    test_name = "ModEM Create Make files from Configure script"
+    test_description = description
+    dependencies = ['configure_test']
     ncpus = 1
 
     def run(self, env, result, src_dir, test_dir, hpc=None, *args, **kwargs):
@@ -33,17 +49,14 @@ class make_config_files:
         # Change directory to copy of ModEM in the test directory
         os.chdir(os.path.join(modem_src_copy, 'f90'))
 
-
         compilers = ['gfortran', 'ifort']
         debug_level = ['Debug', 'Release']
         nprocs = ['Serial', 'MPI']
         fwd_solvers = ['MF', 'SP', 'SP2']
+        spherical = [True, False]
 
-        combinations = list(itertools.product(compilers, debug_level, nprocs, fwd_solvers))
+        combinations = list(itertools.product(compilers, debug_level, nprocs, fwd_solvers, spherical))
 
-        csem_selection = 0
-
-        CONFIG_DIR = './CONFIG'
         config_exe = os.path.join('./CONFIG', 'configure')
 
         for combo in combinations:
@@ -51,15 +64,23 @@ class make_config_files:
             debug_or_release = combo[1]
             mpi_or_serial = combo[2]
             forward_type = combo[3]
-
-            makefile_name = f"Makefile.modset:{compiler}.{debug_or_release}.{mpi_or_serial}.{forward_type}"
+            spherical = combo[4]
 
             config_exe_cmd = [config_exe,
-                              f'-d {debug_or_release}',
+                              f'-g {debug_or_release}',
                               f'-m {mpi_or_serial}',
-                              f'-s {forward_type}',
-                              makefile_name,
-                              compiler]
+                              f'-l {forward_type}']
+
+            if spherical == True:
+                config_exe_cmd.append(f'-s')
+
+            if spherical == True:
+                makefile_name = f"Makefile.modset:{compiler}.{debug_or_release}.{mpi_or_serial}.spherical.{forward_type}"
+            else:
+                makefile_name = f"Makefile.modset:{compiler}.{debug_or_release}.{mpi_or_serial}.{forward_type}"
+
+            config_exe_cmd.append(makefile_name)
+            config_exe_cmd.append(compiler)
 
             logger.info("")
             logger.info(f"Testing configuration creation for {' '.join(config_exe_cmd)}")
@@ -68,7 +89,11 @@ class make_config_files:
             log_file=open(log_fname, 'w')
 
             try:
-                ierr = subprocess.run(config_exe_cmd, check=True, stdout=log_file, stderr=log_file)
+                ierr = subprocess.run(config_exe_cmd,
+                                      check=True,
+                                      stdout=log_file,
+                                      stderr=log_file,
+                                      input='y'.encode('utf-8'))
                 pass
             except subprocess.CalledProcessError as e:
                 result.result = "FAILED"
@@ -80,7 +105,7 @@ class make_config_files:
                 result.msg = f"Did not make the makefile: '{makefile_name}"
                 return result.result
 
-            logger.info("PASSED - Able to create configuration file")
+            logger.passed("Able to create configuration file")
             
         result.result = "PASSED"
         result.msg = "Succsfully created all CSEM Makefiles"
