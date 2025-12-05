@@ -68,8 +68,8 @@ def print_tests(test_directory, valid_tests, invalid_tests):
     if len(invalid_tests) > 0:
         logger.info("Invalid tests: (These tests were not able to be loaded)")
         for tests in invalid_tests:
-            logger.info("  x", tests[0], "--", tests[1])
-        logger.info()
+            logger.info(f"  x {tests[0]} -- {tests[1]}")
+        logger.info("")
     elif len(valid_tests) == 0 and len(invalid_tests) == 0:
         logger.error("error: No tests found in this directory!")
         logger.error("error: Was the right test directory given or were the")
@@ -226,7 +226,6 @@ if __name__ == "__main__":
     subparsers = parser.add_subparsers(dest='command',
                             description='command description',
                             help='Sub-command help message')
-
     # List subcommand
     listParser = subparsers.add_parser('list',
                                     help="List SMART's tests, test suites and compilers",
@@ -281,6 +280,5 @@ if __name__ == "__main__":
     except ValueError as ve:
         parser.print_help()
         sys.exit(-1)
-
 
     args.func(args)
