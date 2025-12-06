@@ -1,0 +1,83 @@
+---
+##################################
+# Denali Super Computer
+##################################
+
+Description:
+  Name: Denali 
+  Max Cores: 14
+  Modules: True
+  LMOD_CMD: /opt/cray/pe/modules/3.2.11.4/bin/modulecmd
+  HPC: False
+
+GlobalEnvVars:
+  - FC:
+    Name: FC
+    Value: ftn
+
+Modsets:
+  ###############
+  # INTEL
+  ###############
+  INTEL:
+    name: PrgEnv-intel
+    Compiler:
+      Name: intel
+      Version: 6.0.10
+      Module: PrgEnv-intel
+      Executables:
+        - ftn
+        - cc
+    MPI:
+      Module: cray-mpich
+      Version: 7.7.19
+      Executables:
+        - ftn
+        - cc
+    Libs:
+      - intel:
+        Module: intel 
+        Version: 19.1.0.166
+      - fftw:
+        Name: FFTW
+        Value: /home/mcurry/Programs/installs/intel
+      - LAPACK:
+        Name: LAPACK
+        Value: /home/mcurry/Programs/installs/intel
+      - BLAS:
+        Name: BLAS
+        Value: /home/mcurry/Programs/installs/intel
+
+  ###############
+  # GNU
+  ###############
+  GNU:
+    name: gnu
+    Compiler:
+      Name: PrgEnv-gnu
+      Version: 6.0.10
+      Module: PrgEnv-gnu
+      Executables:
+        - ftn
+        - cc
+    MPI:
+      Module: cray-mpich
+      Version: 7.7.19
+      Executables:
+        - ftn
+        - cc
+    Libs:
+      - intel:
+        Module: gcc 
+        Version: 11.2.0
+      - fftw:
+        Name: FFTW
+        Value: /home/mcurry/Programs/installs/general
+      - LAPACK:
+        Name: LAPACK
+        Value: /home/mcurry/Programs/installs/general
+      - BLAS:
+        Name: BLAS
+        Value: /home/mcurry/Programs/installs/general
+
+
