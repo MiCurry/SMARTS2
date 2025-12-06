@@ -84,6 +84,7 @@ def print_modsets(modsets, envName):
     # found in the enviornment.yaml file
     logger.info(f"Avaliable Modsets on: {envName}")
     for mods in modsets:
+        print(mods)
         logger.info(f"-, {mods['name']} \t {mods['compiler']['version']}")
 
 
@@ -173,7 +174,7 @@ def list_cmd(args):
             logger.info('')
             return 0
         else:
-            logger.error(f"error: Unkown subcommand: {args.items[1]}")
+            logger.error(f"error: Unkown subcommand: {args.items[0]}")
             args.listParser.print_help()
             sys.exit(-1)
     if len(args.items) > 1:
@@ -232,7 +233,7 @@ if __name__ == "__main__":
                                     description='Description for list sub-command',
                                     epilog='Epilog for list sub-command')
     listParser.add_argument('items',
-                            help='List items - either \'test\', \'env\' (not yet implemented), or \'config\'',
+                            help='List items - either \'test\', \'env\' (not yet implemented), \'modset\' (kinda works) or \'config\'',
                             nargs='+')
     listParser.set_defaults(func=list_cmd)
 
