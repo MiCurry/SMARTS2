@@ -11,6 +11,11 @@ Description:
   Modules: False
   HPC: False
 
+GlobalEnvVars:
+  - FC:
+    Name: FC
+    Value: ftn
+
 Modsets:
   ############
   # GNU Compiled MPICH

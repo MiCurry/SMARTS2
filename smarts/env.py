@@ -86,6 +86,12 @@ class Environment:
         else: # No Modules attribute in env.yaml file - Turn off lmod support
             self.lmod_supported = False
 
+        """ GLobal Enviornment Variables """
+        if 'GlobalEnvVars' in self.env:
+            for envVar in self.env['GlobalEnvVars']:
+                if not self.set_enviornment_variable(envVar):
+                    print("ERROR: The global enviornment variable(s) was not set correctly")
+                    return -1
 
         """ Modset section checks """
         if 'Modsets' not in self.env:
@@ -395,14 +401,19 @@ class Environment:
                 return False
         # The library is specified as a environment variable
         elif 'Name' in library.keys():
-            if 'Value' in library.keys():
-                env_name = library['Name']
-                value = library['Value']
+            self.set_enviornment_variable(library)
 
-                os.environ[env_name] = os.path.expandvars(value)
-            else:
-                print("ERROR: For the library", library['Name'], "does not have a maching value name")
-                return False
+        return True
+
+    def set_enviornment_variable(self, name_value_pair : dict):
+        if 'Value' in name_value_pair.keys():
+            env_name = name_value_pair['Name']
+            value = name_value_pair['Value']
+
+            os.environ[env_name] = os.path.expandvars(value)
+        else:
+            print("ERROR: For the enviornment name", name_value_pair['Name'], "does not have a maching value name")
+            return False
 
         return True
 
