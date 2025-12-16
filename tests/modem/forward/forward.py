@@ -36,7 +36,13 @@ class forward:
     ncpus = 4
 
     def run(self, env, result, src_dir, test_dir, hpc=None, *args, **kwargs):
+        modset = kwargs.get('modset', None)
+        mpi = kwargs.get('mpi', False)
+
+
         executables = utils.all_matches(os.listdir(os.path.join(src_dir, 'f90')), ['Mod3DMT'], ['.f90'])
+
+        print("Found Executables: ", executables, f'Using Modset: {modset}')
 
         for exe in executables:
 
@@ -57,10 +63,12 @@ class forward:
                                     f'{esol_fname}', f'{control_file}']
 
 
-            if (modset := extract_modset(exe)) == False:
-                result.result = 'FAILED'
-                result.msg = "Could not find `Modset:<Modset-Name>' in the executable"
-                return result.result
+            if modset is None:
+                print("Attempting to extract modset from filename...")
+                if (modset := extract_modset(exe)) == False:
+                    result.result = 'FAILED'
+                    result.msg = "Could not find `Modset:<Modset-Name>' in the executable"
+                    return result.result
 
             if modset not in env.list_modsets():
                 print(f"This modset ({modset}) is not in this enviorment, failing")
@@ -71,15 +79,19 @@ class forward:
             print(f"Modset is: {modset}... Loading it!")
             env.load_modset(modset)
 
-            if 'release' in exe:
-                exe_launch = modem_arguments
-            elif 'mpi' in exe:
+            if not mpi:
+                if 'release' in exe:
+                    exe_launch = modem_arguments
+                elif 'mpi' in exe:
+                    exe_launch = ['mpiexec', '-n', f'{self.ncpus}']
+                    exe_launch.extend(modem_arguments)
+                else:
+                    result.result = 'FAILED'
+                    result.msg = "Bad exe"
+                    return result.result
+            else:
                 exe_launch = ['mpiexec', '-n', f'{self.ncpus}']
                 exe_launch.extend(modem_arguments)
-            else:
-                result.result = 'FAILED'
-                result.msg = "Bad exe"
-                return result.result
 
             utils.save_run_command(f'run.save.{exe}.sh', exe_launch)
 

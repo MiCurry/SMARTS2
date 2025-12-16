@@ -57,7 +57,7 @@ class make_config_files:
 
         combinations = list(itertools.product(compilers, debug_level, nprocs, fwd_solvers, spherical))
 
-        config_exe = os.path.join('./CONFIG', 'configure')
+        config_exe = os.path.join('./configure')
 
         for combo in combinations:
             compiler = combo[0]

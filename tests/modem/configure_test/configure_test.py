@@ -43,8 +43,7 @@ class configure_test:
         # Change directory to copy of ModEM in the test directory
         os.chdir(os.path.join(modem_src_copy, 'f90'))
 
-        CONFIG_DIR = './CONFIG'
-        self.config_exe = os.path.join('./CONFIG', 'configure')
+        self.config_exe = os.path.join('./configure')
 
         logger.info("")
 
